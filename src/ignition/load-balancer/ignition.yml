@@ -1,0 +1,109 @@
+variant: fcos
+version: 1.0.0
+passwd:
+  users:
+    - name: maintuser
+      uid: 1001
+      groups:
+        - sudo
+      ssh_authorized_keys:
+        - '${ssh_pubkey}'
+    - name: haproxy
+      uid: 9999
+      system: true
+      no_create_home: true
+      shell: /usr/sbin/nologin
+storage:
+  directories:
+    - path: /etc/haproxy
+      mode: 0750
+      user:
+        name: haproxy
+      group:
+        name: haproxy
+  files:
+    - path: /etc/hostname
+      overwrite: true
+      mode: 0644
+      user:
+        name: root
+      group:
+        name: root
+      contents:
+        inline: lb.k8s.libvirt.int
+    - path: /etc/haproxy/haproxy.cfg
+      mode: 0640
+      user:
+        name: haproxy
+      group:
+        name: haproxy
+      contents:
+        inline: |
+          global
+              log    127.0.0.1 local0 notice
+              daemon
+
+          defaults
+              mode                      http
+              log                       global
+              option                    httplog
+              option                    dontlognull
+              option  http-server-close
+              option  forwardfor        except 127.0.0.0/8
+              option  redispatch
+              retries                   3
+              timeout http-request      10s
+              timeout queue             1m
+              timeout connect           10s
+              timeout client            1m
+              timeout server            1m
+              timeout http-keep-alive   10s
+              timeout check             10s
+
+          frontend kubernetes-apiserver
+              bind *:6443
+              default_backend kubernetes-apiserver
+              mode tcp
+              option tcplog
+
+          backend kubernetes-apiserver
+              balance source
+              mode tcp
+              server master00 master00.k8s.libvirt.int:6443 check
+              server master01 master01.k8s.libvirt.int:6443 check
+              server master02 master02.k8s.libvirt.int:6443 check
+
+          listen stats
+              stats enable
+              stats uri    /haproxy?stats
+              bind *:5555
+systemd:
+  units:
+    - name: haproxy.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=HAProxy
+        Documentation=https://www.haproxy.org/
+        After=network-online.target
+        Wants=network-online.target
+
+        [Service]
+        Type=simple
+        TimeoutStartSec=180
+        StandardOutput=journal
+        ExecStartPre=-/bin/podman pull docker.io/haproxy:${ha_proxy_version}
+        ExecStart=/bin/podman run --name %n --rm \
+            --cpus     ${ha_proxy_max_cpu} \
+            --memory   ${ha_proxy_max_mem} \
+            --publish  6443:6443 \
+            --publish  5555:5555 \
+            --volume   /etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro,z \
+            docker.io/haproxy:${ha_proxy_version}
+        Restart=on-failure
+        RestartSec=5
+        ExecStop=/bin/podman stop %n
+        ExecReload=/bin/podman restart %n
+
+        [Install]
+        WantedBy=multi-user.target
