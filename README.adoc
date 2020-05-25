@@ -2,7 +2,7 @@
 
 Deploy Openshift 4 on libvirt using Terraform without Internet access.
 
-image::assets/architecture.png[Openshift 4 disconnected architecture]
+image::assets/architecture.svg[Openshift 4 disconnected architecture]
 
 == References
 
