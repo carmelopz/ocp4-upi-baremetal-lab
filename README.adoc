@@ -1,0 +1,9 @@
+= Openshift 4
+
+Deploy Openshift 4 on libvirt using Terraform without Internet access.
+
+image::assets/architecture.png[Openshift 4 disconnected architecture]
+
+== References
+
+- https://docs.openshift.com/container-platform/4.3/welcome/index.html
