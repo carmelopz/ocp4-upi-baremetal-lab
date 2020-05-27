@@ -15,7 +15,7 @@ dns = {
 }
 
 ocp_inventory = {
-  "lb" = {
+  "helper" = {
     ip_address  = "10.0.0.250"
     mac_address = "0A:00:00:00:00:00"
   }

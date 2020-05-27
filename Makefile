@@ -38,9 +38,9 @@ init:
    		--context="system_u:object_r:virt_image_t:s0" \
     	--directory $(libvirt_imgs_dir)
 
-	@echo "Rendering FCC configuration for load balancer..."
+	@echo "Rendering FCC configuration for helper node..."
 	@podman run -i --rm quay.io/coreos/fcct:release --pretty --strict \
-  		< src/ignition/load-balancer/ignition.yml > src/ignition/load-balancer/ignition.json.tpl
+  		< src/ignition/helper-node/ignition.yml > src/ignition/helper-node/ignition.json.tpl
 
 plan:
 	@echo "Planing infrastructure changes..."

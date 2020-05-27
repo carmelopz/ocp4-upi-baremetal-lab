@@ -17,7 +17,7 @@ resource "libvirt_network" "openshift" {
 
     # hosts  {
     #   hostname = format("api.%s", var.dns.internal_zone.domain)
-    #   ip       = local.load_balancer_ip
+    #   ip       = local.helper_node.ip
     # }
   }
 

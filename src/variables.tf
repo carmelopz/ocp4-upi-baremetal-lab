@@ -31,9 +31,9 @@ variable "dns" {
   })
 }
 
-# Load balancer specification
-variable "load_balancer" {
-  description = "Configuration for load balancer virtual machine"
+# Helper node specification
+variable "helper_node" {
+  description = "Configuration for helper node virtual machine"
   type = object({
     base_img         = string,
     vcpu             = number,
