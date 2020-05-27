@@ -38,7 +38,7 @@ resource "libvirt_volume" "helper_node" {
 }
 
 resource "libvirt_domain" "helper_node" {
-  name   = format("k8s-%s", local.helper_node.hostname)
+  name   = format("ocp-%s", local.helper_node.hostname)
   memory = var.helper_node.memory
   vcpu   = var.helper_node.vcpu
 

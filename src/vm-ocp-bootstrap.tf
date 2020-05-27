@@ -28,7 +28,7 @@ resource "libvirt_volume" "ocp_bootstrap" {
 }
 
 resource "libvirt_domain" "ocp_bootstrap" {
-  name   = format("k8s-%s", local.ocp_bootstrap.hostname)
+  name   = format("ocp-%s", local.ocp_bootstrap.hostname)
   memory = var.ocp_bootstrap.memory
   vcpu   = var.ocp_bootstrap.vcpu
 
