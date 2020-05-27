@@ -42,7 +42,7 @@ init:
 ifeq (,$(wildcard openshift-install))
 	@echo "Downloading Openshift installer"
 	@wget -O openshift-install-linux.tar.gz \
-		https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${ocp_version}/openshift-install-linux.tar.gz
+		https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$(ocp_version)/openshift-install-linux.tar.gz
 	@tar -xvf openshift-install-linux.tar.gz openshift-install
 	@rm -f openshift-install-linux.tar.gz
 endif
@@ -75,6 +75,10 @@ destroy: plan
 	@rm -rf .terraform
 	@rm -rf output/tf.$(environment).plan
 	@rm -rf state/terraform.$(environment).tfstate
+
+	@echo "Deleting Openshift installation files..."
+	@rm -f openshift-install
+	@rm -rf src/ignition/openshift/$(environment)
 
 	@echo "Restoring network configuration..."
 	@sudo chmod 755 /etc/NetworkManager/conf.d

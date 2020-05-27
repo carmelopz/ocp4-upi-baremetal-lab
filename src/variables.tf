@@ -58,7 +58,8 @@ variable "ocp_cluster" {
     dns_domain  = string,
     pods_cidr   = string,
     pods_range  = number,
-    svcs_cidr   = string
+    svcs_cidr   = string,
+    num_masters = number
   })
 }
 

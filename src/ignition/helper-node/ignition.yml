@@ -136,8 +136,11 @@ systemd:
         StandardOutput=journal
         ExecStartPre=-/bin/podman pull docker.io/haproxy:${ha_proxy_version}
         ExecStart=/bin/podman run --name %n --rm \
+            --publish  80:80 \
+            --publish  443:443 \
             --publish  6443:6443 \
             --publish  5555:5555 \
+            --publish  22623:22623 \
             --volume   /etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro,z \
             docker.io/haproxy:${ha_proxy_version}
         Restart=on-failure

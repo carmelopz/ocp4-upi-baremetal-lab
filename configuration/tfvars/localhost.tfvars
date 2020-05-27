@@ -21,6 +21,7 @@ ocp_cluster = {
   pods_cidr   = "172.0.0.0/16"
   pods_range  = 24
   svcs_cidr   = "172.255.0.0/16"
+  num_masters = 3
 }
 
 ocp_inventory = {

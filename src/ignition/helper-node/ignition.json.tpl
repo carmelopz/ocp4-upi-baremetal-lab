@@ -81,7 +81,7 @@
   "systemd": {
     "units": [
       {
-        "contents": "[Unit]\nDescription=HAProxy\nDocumentation=https://www.haproxy.org/\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=simple\nTimeoutStartSec=180\nStandardOutput=journal\nExecStartPre=-/bin/podman pull docker.io/haproxy:${ha_proxy_version}\nExecStart=/bin/podman run --name %n --rm \\\n    --publish  6443:6443 \\\n    --publish  5555:5555 \\\n    --volume   /etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro,z \\\n    docker.io/haproxy:${ha_proxy_version}\nRestart=on-failure\nRestartSec=5\nExecStop=/bin/podman stop %n\nExecReload=/bin/podman restart %n\n\n[Install]\nWantedBy=multi-user.target\n",
+        "contents": "[Unit]\nDescription=HAProxy\nDocumentation=https://www.haproxy.org/\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=simple\nTimeoutStartSec=180\nStandardOutput=journal\nExecStartPre=-/bin/podman pull docker.io/haproxy:${ha_proxy_version}\nExecStart=/bin/podman run --name %n --rm \\\n    --publish  80:80 \\\n    --publish  443:443 \\\n    --publish  6443:6443 \\\n    --publish  5555:5555 \\\n    --publish  22623:22623 \\\n    --volume   /etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro,z \\\n    docker.io/haproxy:${ha_proxy_version}\nRestart=on-failure\nRestartSec=5\nExecStop=/bin/podman stop %n\nExecReload=/bin/podman restart %n\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "haproxy.service"
       }

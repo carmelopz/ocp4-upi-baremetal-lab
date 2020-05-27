@@ -38,9 +38,10 @@ resource "libvirt_volume" "helper_node" {
 }
 
 resource "libvirt_domain" "helper_node" {
-  name   = format("ocp-%s", local.helper_node.hostname)
-  memory = var.helper_node.memory
-  vcpu   = var.helper_node.vcpu
+  name    = format("ocp-%s", local.helper_node.hostname)
+  memory  = var.helper_node.memory
+  vcpu    = var.helper_node.vcpu
+  running = true
 
   coreos_ignition = libvirt_ignition.helper_node.id
 

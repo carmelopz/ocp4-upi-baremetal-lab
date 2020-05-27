@@ -15,15 +15,65 @@ resource "libvirt_network" "openshift" {
     enabled    = true
     local_only = true
 
-    # hosts  {
-    #   hostname = format("api.%s", var.dns.internal_zone.domain)
-    #   ip       = local.helper_node.ip
-    # }
-  }
+    # A records
+    hosts  {
+      hostname = format("api.%s", var.dns.domain)
+      ip       = local.helper_node.ip
+    }
 
-  # xml {
-  #   xslt = file(format("%s/xslt/network-zone.xml", path.module))
-  # }
+    hosts  {
+      hostname = format("api-int.%s", var.dns.domain)
+      ip       = local.helper_node.ip
+    }
+
+    hosts  {
+      hostname = format("*.apps.%s", var.dns.domain)
+      ip       = local.helper_node.ip
+    }
+
+    hosts  {
+      hostname = format("etcd-0.%s", var.dns.domain)
+      ip       = local.ocp_master.0.ip
+    }
+
+    hosts  {
+      hostname = format("etcd-1.%s", var.dns.domain)
+      ip       = local.ocp_master.1.ip
+    }
+
+    hosts  {
+      hostname = format("etcd-2.%s", var.dns.domain)
+      ip       = local.ocp_master.2.ip
+    }
+
+    # SRV records
+    srvs {
+      service  = "etcd-server-ssl"
+      protocol = "tcp"
+      target   = format("etcd-0.%s", var.dns.domain)
+      port     = 2380
+      priority = 0
+      weight   = 100
+    }
+
+    srvs {
+      service  = "etcd-server-ssl"
+      protocol = "tcp"
+      target   = format("etcd-1.%s", var.dns.domain)
+      port     = 2380
+      priority = 0
+      weight   = 100
+    }
+
+    srvs {
+      service  = "etcd-server-ssl"
+      protocol = "tcp"
+      target   = format("etcd-2.%s", var.dns.domain)
+      port     = 2380
+      priority = 0
+      weight   = 100
+    }
+  }
 
   depends_on = [
     local_file.openshift_dnsmasq
