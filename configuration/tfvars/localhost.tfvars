@@ -14,6 +14,15 @@ dns = {
   server = "10.0.0.1"
 }
 
+ocp_cluster = {
+  name        = "ocp"
+  environment = "localhost"
+  dns_domain  = "bmlab.int"
+  pods_cidr   = "172.0.0.0/16"
+  pods_range  = 24
+  svcs_cidr   = "172.255.0.0/16"
+}
+
 ocp_inventory = {
   "helper" = {
     ip_address  = "10.0.0.250"

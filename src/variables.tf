@@ -1,7 +1,14 @@
+# Enable debug mode
 variable "DEBUG" {
   description = "Enable debug mode"
   type        = bool
   default     = false
+}
+
+# Pull secret for Red Hat registry
+variable "OCP_PULL_SECRET" {
+  description = "Openshift pull secret"
+  type        = string
 }
 
 # Libvirt configuration
@@ -42,13 +49,16 @@ variable "helper_node" {
   })
 }
 
-# Openshift masters specification
-variable "ocp_master" {
-  description = "Configuration for Openshift master virtual machine"
-  type = object({
-    base_img = string,
-    vcpu     = number,
-    memory   = number
+# Openshift cluster information
+variable "ocp_cluster" {
+  description = "Openshift cluster information"
+  type        = object({
+    name        = string,
+    environment = string,
+    dns_domain  = string,
+    pods_cidr   = string,
+    pods_range  = number,
+    svcs_cidr   = string
   })
 }
 
@@ -59,4 +69,24 @@ variable "ocp_inventory" {
     ip_address  = string,
     mac_address = string
   }))
+}
+
+# Openshift bootstrap specification
+variable "ocp_bootstrap" {
+  description = "Configuration for Openshift bootstrap virtual machine"
+  type = object({
+    base_img = string,
+    vcpu     = number,
+    memory   = number
+  })
+}
+
+# Openshift masters specification
+variable "ocp_master" {
+  description = "Configuration for Openshift master virtual machine"
+  type = object({
+    base_img = string,
+    vcpu     = number,
+    memory   = number
+  })
 }

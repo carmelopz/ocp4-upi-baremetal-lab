@@ -4,6 +4,15 @@ Deploy Openshift 4 on libvirt using Terraform without Internet access.
 
 image::assets/architecture.svg[align="center", Openshift 4 disconnected architecture]
 
+== Deploy cluster
+
+Export your pull secret as Terraform variable.
+
+[source,bash]
+----
+export TF_VAR_OCP_PULL_SECRET="$(pass redhat/opentlc/ocp/pull-secret)"
+----
+
 == References
 
 - https://docs.openshift.com/container-platform/4.3/welcome/index.html

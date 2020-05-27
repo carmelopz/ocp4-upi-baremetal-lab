@@ -42,6 +42,9 @@ override.tf.json
 *.out
 
 # Debug files
+openshift-install
+src/ignition/openshift/*
+!src/ignition/openshift/install-config.yaml.tpl
 
 # Confidential data
 id_rsa*
