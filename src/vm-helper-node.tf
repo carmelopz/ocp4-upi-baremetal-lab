@@ -17,63 +17,63 @@ data "template_file" "helper_node_ignition" {
   }
 }
 
-# resource "libvirt_ignition" "helper_node" {
-#   name    = format("%s.ign", var.helper_node.hostname)
-#   pool    = libvirt_pool.kubernetes.name
-#   content = data.template_file.helper_node_ignition.rendered
-# }
+resource "libvirt_ignition" "helper_node" {
+  name    = format("%s.ign", local.helper_node.hostname)
+  pool    = libvirt_pool.openshift.name
+  content = data.template_file.helper_node_ignition.rendered
+}
 
-# resource "libvirt_volume" "helper_node_image" {
-#   name   = format("%s-baseimg.qcow2", var.helper_node.hostname)
-#   pool   = libvirt_pool.kubernetes.name
-#   source = var.helper_node.base_img
-#   format = "qcow2"
-# }
+resource "libvirt_volume" "helper_node_image" {
+  name   = format("%s-baseimg.qcow2", local.helper_node.hostname)
+  pool   = libvirt_pool.openshift.name
+  source = var.helper_node.base_img
+  format = "qcow2"
+}
 
-# resource "libvirt_volume" "helper_node" {
-#   name           = format("%s-volume.qcow2", var.helper_node.hostname)
-#   pool           = libvirt_pool.kubernetes.name
-#   base_volume_id = libvirt_volume.helper_node_image.id
-#   format         = "qcow2"
-# }
+resource "libvirt_volume" "helper_node" {
+  name           = format("%s-volume.qcow2", local.helper_node.hostname)
+  pool           = libvirt_pool.openshift.name
+  base_volume_id = libvirt_volume.helper_node_image.id
+  format         = "qcow2"
+}
 
-# resource "libvirt_domain" "helper_node" {
-#   name   = format("k8s-%s", var.helper_node.hostname)
-#   memory = var.helper_node.memory
-#   vcpu   = var.helper_node.vcpu
+resource "libvirt_domain" "helper_node" {
+  name   = format("k8s-%s", local.helper_node.hostname)
+  memory = var.helper_node.memory
+  vcpu   = var.helper_node.vcpu
 
-#   coreos_ignition = libvirt_ignition.helper_node.id
+  coreos_ignition = libvirt_ignition.helper_node.id
 
-#   disk {
-#     volume_id = libvirt_volume.helper_node.id
-#     scsi      = false
-#   }
+  disk {
+    volume_id = libvirt_volume.helper_node.id
+    scsi      = false
+  }
 
-#   network_interface {
-#     network_name   = libvirt_network.kubernetes.name
-#     hostname       = format("%s.%s", var.helper_node.hostname, var.dns.internal_zone.domain)
-#     addresses      = [ local.helper_node_ip ]
-#     mac            = local.helper_node_mac
-#     wait_for_lease = true
-#   }
+  network_interface {
+    network_name   = libvirt_network.openshift.name
+    hostname       = format("%s.%s", local.helper_node.hostname, var.dns.domain)
+    addresses      = [ local.helper_node.ip ]
+    mac            = local.helper_node.mac
+    wait_for_lease = true
+  }
 
-#   console {
-#     type           = "pty"
-#     target_type    = "serial"
-#     target_port    = "0"
-#     source_host    = "127.0.0.1"
-#     source_service = "0"
-#   }
+  console {
+    type           = "pty"
+    target_type    = "serial"
+    target_port    = "0"
+    source_host    = "127.0.0.1"
+    source_service = "0"
+  }
 
-#   graphics {
-#     type           = "spice"
-#     listen_type    = "address"
-#     listen_address = "127.0.0.1"
-#     autoport       = true
-#   }
+  graphics {
+    type           = "spice"
+    listen_type    = "address"
+    listen_address = "127.0.0.1"
+    autoport       = true
+  }
 
-#   provisioner "local-exec" {
-#     when    = destroy
-#     command = format("ssh-keygen -R %s", self.network_interface.0.hostname)
-#   }
-# }
+  provisioner "local-exec" {
+    when    = destroy
+    command = format("ssh-keygen -R %s", self.network_interface.0.hostname)
+  }
+}
