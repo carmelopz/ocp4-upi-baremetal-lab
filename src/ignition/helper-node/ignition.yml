@@ -115,9 +115,9 @@ storage:
               server infra02 master02.ocp.bmlab.int:443 check
 
           listen stats
-              stats enable
-              stats uri    /haproxy?stats
               bind *:5555
+              stats enable
+              stats uri /haproxy?stats
 systemd:
   units:
     - name: haproxy.service
@@ -135,8 +135,6 @@ systemd:
         StandardOutput=journal
         ExecStartPre=-/bin/podman pull docker.io/haproxy:${ha_proxy_version}
         ExecStart=/bin/podman run --name %n --rm \
-            --cpus     ${ha_proxy_max_cpu} \
-            --memory   ${ha_proxy_max_mem} \
             --publish  6443:6443 \
             --publish  5555:5555 \
             --volume   /etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro,z \

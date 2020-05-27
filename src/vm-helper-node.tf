@@ -14,8 +14,6 @@ data "template_file" "helper_node_ignition" {
     fqdn             = local.helper_node.fqdn
     ssh_pubkey       = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
     ha_proxy_version = var.helper_node.ha_proxy_version
-    ha_proxy_max_cpu = format("%.3f", var.helper_node.vcpu)
-    ha_proxy_max_mem = format("%dm", var.helper_node.memory)
   }
 }
 
