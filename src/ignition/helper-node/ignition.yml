@@ -45,13 +45,13 @@ storage:
 
           defaults
               mode                      http
+              default-server            init-addr last,libc,none
               log                       global
               option                    httplog
               option                    dontlognull
               option  http-server-close
               option  forwardfor        except 127.0.0.0/8
               option  redispatch
-              retries                   3
               timeout http-request      10s
               timeout queue             1m
               timeout connect           10s
@@ -59,6 +59,7 @@ storage:
               timeout server            1m
               timeout http-keep-alive   10s
               timeout check             10s
+              retries                   3
 
           frontend openshift-api-server
               bind *:6443
