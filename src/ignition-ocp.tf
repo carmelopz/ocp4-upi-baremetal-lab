@@ -27,3 +27,18 @@ resource "local_file" "ocp_install_config" {
     command = "./generate-ocp-ignition.sh"
   }
 }
+
+data "local_file" "ocp_ignition_bootstrap" {
+  filename = format("%s/ignition/openshift/%s/bootstrap.ign",
+    path.module, var.ocp_cluster.environment)
+}
+
+data "local_file" "ocp_ignition_master" {
+  filename = format("%s/ignition/openshift/%s/master.ign",
+    path.module, var.ocp_cluster.environment)
+}
+
+data "local_file" "ocp_ignition_worker" {
+  filename = format("%s/ignition/openshift/%s/worker.ign",
+    path.module, var.ocp_cluster.environment)
+}
