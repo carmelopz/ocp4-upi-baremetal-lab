@@ -37,7 +37,7 @@ Extract image content in libvirt images folder.
 
 [source,bash]
 ----
-gunzip -c file.gz /tmp/fedora-coreos-31.20200310.3.0-qemu.x86_64.qcow2.gz > \
+unxz -c /tmp/fedora-coreos-31.20200310.3.0-qemu.x86_64.qcow2.gz > \
     /var/lib/libvirt/images/fedora-coreos-31.20200310.3.0-qemu.x86_64.qcow2
 ----
 
@@ -55,7 +55,7 @@ Extract image content in libvirt images folder.
 
 [source,bash]
 ----
-gunzip -c file.gz /tmp/var/lib/libvirt/images/rhcos-4.3.8-x86_64-qemu.x86_64.qcow2.gz > \
+gunzip -c /tmp/var/lib/libvirt/images/rhcos-4.3.8-x86_64-qemu.x86_64.qcow2.gz > \
     /var/lib/libvirt/images//var/lib/libvirt/images/rhcos-4.3.8-x86_64-qemu.x86_64.qcow2
 ----
 
