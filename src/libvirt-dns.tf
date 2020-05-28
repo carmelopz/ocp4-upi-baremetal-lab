@@ -5,6 +5,8 @@ data "template_file" "openshift_dnsmasq" {
   vars = {
     dns_internal_zone   = var.dns.domain
     dns_internal_server = var.network.gateway
+    ocp_apps_domain     = format("apps.%s", var.dns.domain)
+    ocp_apps_lb         = local.helper_node.ip
   }
 }
 

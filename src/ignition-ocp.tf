@@ -28,26 +28,26 @@ resource "local_file" "ocp_install_config" {
   }
 }
 
-# BUG: Uncomment when fixed https://github.com/hashicorp/terraform/issues/11806 (milestone TF 0.13)
-# data "local_file" "ocp_ignition_bootstrap" {
-#   filename   = format("%s/ignition/openshift/%s/bootstrap.ign", path.module, var.ocp_cluster.environment)
-#   depends_on = [
-#     local_file.ocp_install_config
-#   ]
-# }
+# BUG: Will be allways recreated https://github.com/hashicorp/terraform/issues/11806 (milestone TF 0.13)
+data "local_file" "ocp_ignition_bootstrap" {
+  filename   = format("%s/ignition/openshift/%s/bootstrap.ign", path.module, var.ocp_cluster.environment)
+  depends_on = [
+    local_file.ocp_install_config
+  ]
+}
 
-# BUG: Uncomment when fixed https://github.com/hashicorp/terraform/issues/11806 (milestone TF 0.13)
-# data "local_file" "ocp_ignition_master" {
-#   filename   = format("%s/ignition/openshift/%s/master.ign", path.module, var.ocp_cluster.environment)
-#   depends_on = [
-#     local_file.ocp_install_config
-#   ]
-# }
+# BUG: Will be allways recreated https://github.com/hashicorp/terraform/issues/11806 (milestone TF 0.13)
+data "local_file" "ocp_ignition_master" {
+  filename   = format("%s/ignition/openshift/%s/master.ign", path.module, var.ocp_cluster.environment)
+  depends_on = [
+    local_file.ocp_install_config
+  ]
+}
 
-# BUG: Uncomment when fixed https://github.com/hashicorp/terraform/issues/11806 (milestone TF 0.13)
-# data "local_file" "ocp_ignition_worker" {
-#   filename   = format("%s/ignition/openshift/%s/worker.ign", path.module, var.ocp_cluster.environment)
-#   depends_on = [
-#     local_file.ocp_install_config
-#   ]
-# }
+# BUG: Will be allways recreated https://github.com/hashicorp/terraform/issues/11806 (milestone TF 0.13)
+data "local_file" "ocp_ignition_worker" {
+  filename   = format("%s/ignition/openshift/%s/worker.ign", path.module, var.ocp_cluster.environment)
+  depends_on = [
+    local_file.ocp_install_config
+  ]
+}

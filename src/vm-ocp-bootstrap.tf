@@ -10,15 +10,13 @@ locals {
 resource "libvirt_ignition" "ocp_bootstrap" {
   name    = format("%s.ign", local.ocp_bootstrap.hostname)
   pool    = libvirt_pool.openshift.name
-  # BUG: Use data.local_file.ocp_ignition_bootstrap.rendered when fixed
-  # https://github.com/hashicorp/terraform/issues/11806 (milestone TF 0.13)
-  content = file(
-    format("%s/ignition/openshift/%s/bootstrap.ign", path.module, var.ocp_cluster.environment)
-  )
+  content = data.local_file.ocp_ignition_bootstrap.content
 
-  depends_on = [
-    local_file.ocp_install_config
-  ]
+  lifecycle {
+    ignore_changes = [
+      content
+    ]
+  }
 }
 
 resource "libvirt_volume" "ocp_bootstrap_image" {
@@ -69,6 +67,12 @@ resource "libvirt_domain" "ocp_bootstrap" {
     listen_type    = "address"
     listen_address = "127.0.0.1"
     autoport       = true
+  }
+
+  lifecycle {
+    ignore_changes = [
+      running
+    ]
   }
 
   provisioner "local-exec" {

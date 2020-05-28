@@ -73,6 +73,12 @@ resource "libvirt_domain" "helper_node" {
     autoport       = true
   }
 
+  lifecycle {
+    ignore_changes = [
+      running
+    ]
+  }
+
   provisioner "local-exec" {
     when    = destroy
     command = format("ssh-keygen -R %s", self.network_interface.0.hostname)

@@ -27,11 +27,6 @@ resource "libvirt_network" "openshift" {
     }
 
     hosts  {
-      hostname = format("*.apps.%s", var.dns.domain)
-      ip       = local.helper_node.ip
-    }
-
-    hosts  {
       hostname = format("etcd-0.%s", var.dns.domain)
       ip       = local.ocp_master.0.ip
     }
