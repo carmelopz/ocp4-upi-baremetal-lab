@@ -1,5 +1,5 @@
 # Terraform parameters
-ocp_version="4.3.21"
+ocp_version="4.3.22"
 environment=localhost
 tf_cmd=terraform
 tf_files=src
