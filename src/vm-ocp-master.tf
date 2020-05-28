@@ -16,7 +16,15 @@ resource "libvirt_ignition" "ocp_master" {
 
   name    = format("%s.ign", element(local.ocp_master, count.index).hostname)
   pool    = libvirt_pool.openshift.name
-  content = data.local_file.ocp_ignition_master.content
+  # BUG: Use data.local_file.ocp_ignition_master.rendered when fixed
+  # https://github.com/hashicorp/terraform/issues/11806 (milestone TF 0.13)
+  content = file(
+    format("%s/ignition/openshift/%s/master.ign", path.module, var.ocp_cluster.environment)
+  )
+
+  depends_on = [
+    local_file.ocp_install_config
+  ]
 }
 
 resource "libvirt_volume" "ocp_master_image" {
