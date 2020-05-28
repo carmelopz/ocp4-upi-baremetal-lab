@@ -39,8 +39,7 @@ resource "tls_locally_signed_cert" "ocp_registry" {
   allowed_uses = [
     "digital_signature",
     "key_encipherment",
-    "server_auth",
-    "client_auth"
+    "server_auth"
   ]
 }
 
