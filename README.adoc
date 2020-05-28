@@ -55,7 +55,7 @@ Extract image content in libvirt images folder.
 
 [source,bash]
 ----
-gunzip -c /tmp/var/lib/libvirt/images/rhcos-4.3.8-x86_64-qemu.x86_64.qcow2.gz > \
+gunzip -c /tmp/rhcos-4.3.8-x86_64-qemu.x86_64.qcow2.gz > \
     /var/lib/libvirt/images/rhcos-4.3.8-x86_64-qemu.x86_64.qcow2
 ----
 
