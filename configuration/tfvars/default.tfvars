@@ -3,6 +3,7 @@ helper_node = {
   vcpu             = 1
   memory           = 512
   ha_proxy_version = "2.0.14"
+  registry_version = "2.7.1"
 }
 
 ocp_bootstrap = {

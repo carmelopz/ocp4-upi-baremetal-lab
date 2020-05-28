@@ -114,7 +114,9 @@ Wait until bootstrap is up and running to power on master nodes.
 
 [source,bash]
 ----
-make
+for i in $(seq 0 2); do
+    virsh start "ocp-master0$i"
+done
 ----
 
 Verify the Openshift cluster is correctly created.

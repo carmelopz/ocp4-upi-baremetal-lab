@@ -86,7 +86,8 @@ resource "libvirt_domain" "ocp_master" {
 
   lifecycle {
     ignore_changes = [
-      running
+      running,
+      network_interface.0.addresses
     ]
   }
 

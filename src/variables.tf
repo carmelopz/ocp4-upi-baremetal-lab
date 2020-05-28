@@ -45,7 +45,8 @@ variable "helper_node" {
     base_img         = string,
     vcpu             = number,
     memory           = number,
-    ha_proxy_version = string
+    ha_proxy_version = string,
+    registry_version = string
   })
 }
 

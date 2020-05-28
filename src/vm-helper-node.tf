@@ -14,6 +14,7 @@ data "template_file" "helper_node_ignition" {
     fqdn             = local.helper_node.fqdn
     ssh_pubkey       = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
     ha_proxy_version = var.helper_node.ha_proxy_version
+    registry_version = var.helper_node.registry_version
   }
 }
 
@@ -75,7 +76,8 @@ resource "libvirt_domain" "helper_node" {
 
   lifecycle {
     ignore_changes = [
-      running
+      running,
+      network_interface.0.addresses
     ]
   }
 

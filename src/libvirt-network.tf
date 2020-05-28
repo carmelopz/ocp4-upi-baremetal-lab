@@ -17,6 +17,11 @@ resource "libvirt_network" "openshift" {
 
     # A records
     hosts  {
+      hostname = format("registry.%s", var.dns.domain)
+      ip       = local.helper_node.ip
+    }
+
+    hosts  {
       hostname = format("api.%s", var.dns.domain)
       ip       = local.helper_node.ip
     }

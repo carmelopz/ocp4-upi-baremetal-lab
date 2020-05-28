@@ -13,14 +13,43 @@ passwd:
       system: true
       no_create_home: true
       shell: /usr/sbin/nologin
+    - name: registry
+      uid: 9998
+      system: true
+      no_create_home: true
+      shell: /usr/sbin/nologin
 storage:
   directories:
     - path: /etc/haproxy
-      mode: 0750
+      mode: 0755
       user:
         name: haproxy
       group:
         name: haproxy
+    - path: /etc/registry
+      mode: 0755
+      user:
+        name: registry
+      group:
+        name: registry
+    - path: /var/lib/registry/data
+      mode: 0755
+      user:
+        name: registry
+      group:
+        name: registry
+    - path: /var/lib/registry/auth
+      mode: 0755
+      user:
+        name: registry
+      group:
+        name: registry
+    - path: /var/lib/registry/certs
+      mode: 0755
+      user:
+        name: registry
+      group:
+        name: registry
   files:
     - path: /etc/hostname
       overwrite: true
@@ -61,6 +90,23 @@ storage:
               timeout check             10s
               retries                   3
 
+          resolvers dns
+            nameserver dns1  10.0.0.1:53
+            resolve_retries  3
+            timeout resolve  1s
+            timeout retry    1s
+            hold    other    30s
+            hold    refused  30s
+            hold    nx       30s
+            hold    timeout  30s
+            hold    valid    10s
+            hold    obsolete 30s
+
+          listen stats
+              bind *:5555
+              stats enable
+              stats uri /haproxy?stats
+
           frontend openshift-api-server
               bind *:6443
               default_backend openshift-apiserver
@@ -70,10 +116,10 @@ storage:
           backend openshift-apiserver
               balance source
               mode tcp
-              server bootstrap bootstrap.ocp.bmlab.int:6443 check
-              server master00  master00.ocp.bmlab.int:6443  check
-              server master01  master01.ocp.bmlab.int:6443  check
-              server master02  master02.ocp.bmlab.int:6443  check
+              server bootstrap bootstrap.ocp.bmlab.int:6443 check resolvers dns
+              server master00  master00.ocp.bmlab.int:6443  check resolvers dns
+              server master01  master01.ocp.bmlab.int:6443  check resolvers dns
+              server master02  master02.ocp.bmlab.int:6443  check resolvers dns
 
           frontend machine-config-server
               bind *:22623
@@ -84,10 +130,10 @@ storage:
           backend machine-config-server
               balance source
               mode tcp
-              server bootstrap bootstrap.ocp.bmlab.int:22623 check
-              server master00  master00.ocp.bmlab.int:22623  check
-              server master01  master01.ocp.bmlab.int:22623  check
-              server master02  master02.ocp.bmlab.int:22623  check
+              server bootstrap bootstrap.ocp.bmlab.int:22623 check resolvers dns
+              server master00  master00.ocp.bmlab.int:22623  check resolvers dns
+              server master01  master01.ocp.bmlab.int:22623  check resolvers dns
+              server master02  master02.ocp.bmlab.int:22623  check resolvers dns
 
           frontend ingress-http
               bind *:80
@@ -98,9 +144,9 @@ storage:
           backend ingress-http
               balance source
               mode tcp
-              server infra00 master00.ocp.bmlab.int:80 check
-              server infra01 master01.ocp.bmlab.int:80 check
-              server infra02 master02.ocp.bmlab.int:80 check
+              server infra00 master00.ocp.bmlab.int:80 check resolvers dns
+              server infra01 master01.ocp.bmlab.int:80 check resolvers dns
+              server infra02 master02.ocp.bmlab.int:80 check resolvers dns
 
           frontend ingress-https
               bind *:443
@@ -111,14 +157,54 @@ storage:
           backend ingress-https
               balance source
               mode tcp
-              server infra00 master00.ocp.bmlab.int:443 check
-              server infra01 master01.ocp.bmlab.int:443 check
-              server infra02 master02.ocp.bmlab.int:443 check
-
-          listen stats
-              bind *:5555
-              stats enable
-              stats uri /haproxy?stats
+              server infra00 master00.ocp.bmlab.int:443 check resolvers dns
+              server infra01 master01.ocp.bmlab.int:443 check resolvers dns
+              server infra02 master02.ocp.bmlab.int:443 check resolvers dns
+    - path: /etc/registry/configuration.env
+      overwrite: true
+      mode: 0644
+      user:
+        name: root
+      group:
+        name: root
+      contents:
+        inline: |
+          REGISTRY_AUTH=htpasswd
+          REGISTRY_AUTH_HTPASSWD_REALM=Registry credentials
+          REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd
+          REGISTRY_HTTP_TLS_CERTIFICATE=/certs/certificate.pem
+          REGISTRY_HTTP_TLS_KEY=/certs/private.key
+          REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED=true
+    - path: /var/lib/registry/auth/htpasswd
+      overwrite: true
+      mode: 0644
+      user:
+        name: root
+      group:
+        name: root
+      contents:
+        inline: |
+          ocp:$2y$05$0XLfYiGz6o8N24R3lG.d..JjnSUJVC9WnM5H0RzriZ6r9ESizdCci
+    - path: /var/lib/registry/certs/certificate.pem
+      overwrite: true
+      mode: 0644
+      user:
+        name: root
+      group:
+        name: root
+      contents:
+        inline: |
+          CHANGE_ME
+    - path: /var/lib/registry/certs/private.key
+      overwrite: true
+      mode: 0644
+      user:
+        name: root
+      group:
+        name: root
+      contents:
+        inline: |
+          CHANGE_ME
 systemd:
   units:
     - name: haproxy.service
@@ -136,13 +222,41 @@ systemd:
         StandardOutput=journal
         ExecStartPre=-/bin/podman pull docker.io/haproxy:${ha_proxy_version}
         ExecStart=/bin/podman run --name %n --rm \
-            --publish  80:80 \
-            --publish  443:443 \
-            --publish  6443:6443 \
-            --publish  5555:5555 \
-            --publish  22623:22623 \
-            --volume   /etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro,z \
+            --publish 80:80 \
+            --publish 443:443 \
+            --publish 6443:6443 \
+            --publish 5555:5555 \
+            --publish 22623:22623 \
+            --volume  /etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro,z \
             docker.io/haproxy:${ha_proxy_version}
+        Restart=on-failure
+        RestartSec=5
+        ExecStop=/bin/podman stop %n
+        ExecReload=/bin/podman restart %n
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: registry.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Registry
+        Documentation=https://hub.docker.com/_/registry
+        After=network-online.target
+        Wants=network-online.target
+
+        [Service]
+        Type=simple
+        TimeoutStartSec=180
+        StandardOutput=journal
+        ExecStartPre=-/bin/podman pull docker.io/registry:${registry_version}
+        ExecStart=/bin/podman run --name %n --rm \
+            --publish  5000:5000 \
+            --env-file /etc/registry/configuration.env \
+            --volume   /var/lib/registry/data:/var/lib/registry:z \
+            --volume   /var/lib/registry/auth:/auth:ro,z \
+            --volume   /var/lib/registry/certs:/certs:ro,z \
+            docker.io/registry:${registry_version}
         Restart=on-failure
         RestartSec=5
         ExecStop=/bin/podman stop %n
