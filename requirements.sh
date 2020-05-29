@@ -5,9 +5,10 @@ set -o nounset  # exit when use undeclared variables
 set -o pipefail # return the exit code of the last command that threw a non-zero
 
 # Global variables
-TF_VERSION="0.12.25"
+TF_VERSION="0.12.26"
 TF_PROVIDERS_DIR="${HOME}/.terraform.d/plugins"
 TF_LIBVIRT_PROVIDER_VERSION="v0.6.2/terraform-provider-libvirt-0.6.2+git.1585292411.8cbe9ad0.Fedora_28.x86_64.tar.gz"
+FCCT_VERSION="0.5.0"
 
 # install_terraform <installation_dir> <terraform_version>
 function install_terraform {
@@ -47,6 +48,19 @@ function install_tf_provider {
     rm -f ${provider_binary}.tar.gz
 }
 
+# install_fcct <installation_dir> <fcct_version>
+function install_fcct {
+
+    fcct_installation_dir=${1}
+    fcct_binary="${fcct_installation_dir}/fcct"
+    fcct_version=${2}
+
+    # Download and install fcct
+    curl -s -L --output ${fcct_binary} \
+        https://github.com/coreos/fcct/releases/download/v${fcct_version}/fcct-x86_64-unknown-linux-gnu
+    chmod +x ${fcct_binary}
+}
+
 # Install libvirt
 if ! (which virsh &> /dev/null); then
     echo "Follow the instructions to install libvirt in your linux distribution."
@@ -74,4 +88,14 @@ else
     libvirt_tf_current_version=$(echo "$(${TF_PROVIDERS_DIR}/terraform-provider-libvirt -version)" |\
         head -n 1 | rev | cut -d " " -f 1 | rev)
     echo "Libvirt provider ${libvirt_tf_current_version} for Terraform is already installed."
+fi
+
+# Install Fedora CoreOS Config Transpiler
+if ! (which fcct &> /dev/null); then
+    echo "Installing FCCT ${FCCT_VERSION}..."
+    install_fcct ${HOME}/bin ${FCCT_VERSION}
+    echo "Successfully installed!"
+else
+    fcct_current_version=$(fcct --version)
+    echo "${fcct_current_version} is already installed."
 fi

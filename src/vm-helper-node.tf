@@ -7,21 +7,16 @@ locals {
   }
 }
 
-data "template_file" "helper_node_ignition" {
-  template = file(format("%s/ignition/helper-node/ignition.json.tpl", path.module))
-
-  vars = {
-    fqdn             = local.helper_node.fqdn
-    ssh_pubkey       = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
-    ha_proxy_version = var.helper_node.ha_proxy_version
-    registry_version = var.helper_node.registry_version
-  }
-}
-
 resource "libvirt_ignition" "helper_node" {
   name    = format("%s.ign", local.helper_node.hostname)
   pool    = libvirt_pool.openshift.name
-  content = data.template_file.helper_node_ignition.rendered
+  content = data.local_file.helper_node_ignition.content
+
+  lifecycle {
+    ignore_changes = [
+      content
+    ]
+  }
 }
 
 resource "libvirt_volume" "helper_node_image" {

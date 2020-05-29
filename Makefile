@@ -39,17 +39,13 @@ init:
    		--context="system_u:object_r:virt_image_t:s0" \
     	--directory $(libvirt_imgs_dir)
 
-ifeq (,$(wildcard openshift-install))
 	@echo "Downloading Openshift installer"
+ifeq (,$(wildcard openshift-install))
 	@wget -O openshift-install-linux.tar.gz \
 		https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$(ocp_version)/openshift-install-linux.tar.gz
 	@tar -xvf openshift-install-linux.tar.gz openshift-install
 	@rm -f openshift-install-linux.tar.gz
 endif
-
-	@echo "Rendering FCC configuration for helper node..."
-	@podman run -i --rm quay.io/coreos/fcct:release --pretty --strict \
-  		< src/ignition/helper-node/ignition.yml > src/ignition/helper-node/ignition.json.tpl
 
 plan:
 	@echo "Planing infrastructure changes..."
