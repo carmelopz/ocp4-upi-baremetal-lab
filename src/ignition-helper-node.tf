@@ -14,7 +14,7 @@ data "template_file" "helper_node_ignition" {
     ssh_pubkey = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
 
     haproxy_version = var.helper_node.haproxy_version
-    haproxy_dns     = var.network.gateway
+    haproxy_dns     = format("%s:53", var.network.gateway)
 
     registry_version         = var.helper_node.registry_version
     registry_htpasswd        = format("%s:%s", "ocp", bcrypt("changeme"))

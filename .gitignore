@@ -44,7 +44,7 @@ override.tf.json
 # Debug files
 openshift-install
 src/ignition/helper-node/*
-!src/ignition/openshift/ignition.yml.tpl
+!src/ignition/helper-node/ignition.yml.tpl
 src/ignition/openshift/*
 !src/ignition/openshift/install-config.yaml.tpl
 
