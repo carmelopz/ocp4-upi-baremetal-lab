@@ -37,7 +37,7 @@ resource "libvirt_domain" "ocp_bootstrap" {
   name    = format("ocp-%s", local.ocp_bootstrap.hostname)
   memory  = var.ocp_bootstrap.memory
   vcpu    = var.ocp_bootstrap.vcpu
-  running = true
+  running = false
 
   coreos_ignition = libvirt_ignition.ocp_bootstrap.id
 

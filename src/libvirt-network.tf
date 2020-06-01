@@ -2,7 +2,7 @@ resource "libvirt_network" "openshift" {
   name      = var.network.name
   domain    = var.dns.domain
   mode      = "nat"
-  bridge    = "kubevirbr0"
+  bridge    = "ocpvirbr0"
   mtu       = 1500
   addresses = [ var.network.subnet ]
   autostart = true
@@ -16,32 +16,32 @@ resource "libvirt_network" "openshift" {
     local_only = true
 
     # A records
-    hosts  {
-      hostname = format("registry.%s", var.dns.domain)
-      ip       = local.helper_node.ip
+    hosts {
+      hostname = local.registry.fqdn
+      ip       = local.registry.ip
     }
 
-    hosts  {
+    hosts {
       hostname = format("api.%s", var.dns.domain)
-      ip       = local.helper_node.ip
+      ip       = local.load_balancer.ip
     }
 
-    hosts  {
+    hosts {
       hostname = format("api-int.%s", var.dns.domain)
-      ip       = local.helper_node.ip
+      ip       = local.load_balancer.ip
     }
 
-    hosts  {
+    hosts {
       hostname = format("etcd-0.%s", var.dns.domain)
       ip       = local.ocp_master.0.ip
     }
 
-    hosts  {
+    hosts {
       hostname = format("etcd-1.%s", var.dns.domain)
       ip       = local.ocp_master.1.ip
     }
 
-    hosts  {
+    hosts {
       hostname = format("etcd-2.%s", var.dns.domain)
       ip       = local.ocp_master.2.ip
     }
@@ -73,6 +73,10 @@ resource "libvirt_network" "openshift" {
       priority = 0
       weight   = 100
     }
+  }
+
+  xml {
+    xslt = data.template_file.openshift_libvirt_dns.rendered
   }
 
   depends_on = [

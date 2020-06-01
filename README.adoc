@@ -104,11 +104,32 @@ Export your pull secret as Terraform variable.
 export TF_VAR_OCP_PULL_SECRET="$(pass redhat/opentlc/ocp/pull-secret)"
 ----
 
-Deploy `+helper+` and `+bootstrap+` nodes.
+Deploy `+helper+` node.
 
 [source,bash]
 ----
 make
+----
+
+Mirror the Openshift registry (change OCP_VERSION value).
+
+[source,bash]
+----
+export OCP_VERSION="x.y.z-arch"
+
+oc adm release mirror \
+    --registry-config=src/registry/pull-secret.json \
+    --from=quay.io/openshift-release-dev/ocp-release:${OCP_VERSION} \
+    --to=registry.ocp.bmlab.int:5000/ocp4 \
+    --to-release-image=registry.ocp.bmlab.int:5000/ocp4/${OCP_VERSION} \
+    --insecure=true
+----
+
+Deploy `+bootstrap+` node powering it on.
+
+[source,bash]
+----
+virsh start ocp-bootstrap
 ----
 
 Wait until bootstrap is up and running to power on master nodes.
@@ -134,6 +155,39 @@ Shutdown bootstrap node.
 [source,bash]
 ----
 virsh shutdown ocp-bootstrap
+----
+
+=== Upgrade cluster
+
+Get the digest for the new version.
+
+[source,bash]
+----
+export UPGRADE_TO="x.y.z-arch"
+
+oc adm release info quay.io/openshift-release-dev/ocp-release:${UPGRADE_TO}
+...
+Pull From: quay.io/openshift-release-dev/ocp-release@${UPGRADE_DIGEST}
+...
+----
+
+Mirror the Openshift registry with the new version images.
+
+[source,bash]
+----
+oc adm release mirror \
+    --registry-config=src/registry/pull-secret.json \
+    --from=quay.io/openshift-release-dev/ocp-release:${UPGRADE_TO} \
+    --to=registry.ocp.bmlab.int:5000/ocp4 \
+    --to-release-image=registry.ocp.bmlab.int:5000/ocp4/${UPGRADE_TO} \
+    --insecure=true
+----
+
+[source,bash]
+----
+oc adm upgrade \
+    --allow-explicit-upgrade \
+    --to-image=registry.ocp.bmlab.int:5000/ocp4@${UPGRADE_DIGEST}
 ----
 
 == References

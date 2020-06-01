@@ -17,8 +17,7 @@ resource "tls_cert_request" "ocp_registry" {
   }
 
   dns_names = [
-    local.helper_node.fqdn,
-    format("registry.%s", var.dns.domain)
+    local.registry.fqdn
   ]
 
   ip_addresses = [

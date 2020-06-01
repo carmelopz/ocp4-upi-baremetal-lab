@@ -13,11 +13,11 @@ data "template_file" "helper_node_ignition" {
     fqdn       = local.helper_node.fqdn
     ssh_pubkey = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
 
-    haproxy_version = var.helper_node.haproxy_version
+    haproxy_version = var.load_balancer.version
     haproxy_dns     = format("%s:53", var.network.gateway)
 
-    registry_version         = var.helper_node.registry_version
-    registry_htpasswd        = format("%s:%s", "ocp", bcrypt("changeme"))
+    registry_version         = var.registry.version
+    registry_htpasswd        = format("%s:%s", var.registry.username, bcrypt(var.registry.password))
     registry_tls_certificate = indent(10, local.registry_tls.certificate)
     registry_tls_private_key = indent(10, local.registry_tls.private_key)
 

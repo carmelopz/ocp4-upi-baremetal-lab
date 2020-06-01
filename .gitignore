@@ -47,6 +47,7 @@ src/ignition/helper-node/*
 !src/ignition/helper-node/ignition.yml.tpl
 src/ignition/openshift/*
 !src/ignition/openshift/install-config.yaml.tpl
+src/registry/pull-secret.json
 
 # Confidential data
 id_rsa*

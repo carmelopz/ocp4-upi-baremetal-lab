@@ -1,10 +1,26 @@
 locals {
+
   helper_node = {
     hostname = "helper"
     fqdn     = format("helper.%s", var.dns.domain)
     ip       = lookup(var.ocp_inventory, "helper").ip_address
     mac      = lookup(var.ocp_inventory, "helper").mac_address
   }
+
+  load_balancer = {
+    hostname = "lb"
+    fqdn     = format("lb.%s", var.dns.domain)
+    ip       = lookup(var.ocp_inventory, "helper").ip_address
+    mac      = lookup(var.ocp_inventory, "helper").mac_address
+  }
+
+  registry = {
+    hostname = "registry"
+    fqdn     = format("registry.%s", var.dns.domain)
+    ip       = lookup(var.ocp_inventory, "helper").ip_address
+    mac      = lookup(var.ocp_inventory, "helper").mac_address
+  }
+
 }
 
 resource "libvirt_ignition" "helper_node" {
@@ -31,6 +47,7 @@ resource "libvirt_volume" "helper_node" {
   pool           = libvirt_pool.openshift.name
   base_volume_id = libvirt_volume.helper_node_image.id
   format         = "qcow2"
+  size           = var.helper_node.size * pow(10, 9) # Bytes
 }
 
 resource "libvirt_domain" "helper_node" {

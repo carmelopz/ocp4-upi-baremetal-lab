@@ -20,5 +20,14 @@ networking:
       hostPrefix: ${ocp_pods_range}
   serviceNetwork:
     - ${ocp_svcs_cidr}
+imageContentSources:
+  - source: quay.io/openshift-release-dev/ocp-release
+    mirrors:
+      - ${ocp_registry_mirror}
+  - source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+    mirrors:
+      - ${ocp_registry_mirror}
 pullSecret: '${ocp_pull_secret}'
 sshKey: '${ocp_ssh_pubkey}'
+additionalTrustBundle: |
+  ${ocp_additional_ca}

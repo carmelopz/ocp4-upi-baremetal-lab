@@ -26,10 +26,7 @@ resource "libvirt_ignition" "ocp_master" {
 }
 
 resource "libvirt_volume" "ocp_master_image" {
-
-  count = var.ocp_cluster.num_masters
-
-  name   = format("%s-baseimg.qcow2", element(local.ocp_master, count.index).hostname)
+  name   = format("%s-baseimg.qcow2", element(local.ocp_master, 0).hostname)
   pool   = libvirt_pool.openshift.name
   source = var.ocp_master.base_img
   format = "qcow2"
@@ -41,7 +38,7 @@ resource "libvirt_volume" "ocp_master" {
 
   name           = format("%s-volume.qcow2", element(local.ocp_master, count.index).hostname)
   pool           = libvirt_pool.openshift.name
-  base_volume_id = element(libvirt_volume.ocp_master_image.*.id, count.index)
+  base_volume_id = libvirt_volume.ocp_master_image.id
   format         = "qcow2"
 }
 

@@ -1,9 +1,20 @@
 helper_node = {
-  base_img         = "/var/lib/libvirt/images/fedora-coreos-31.20200310.3.0-qemu.x86_64.qcow2"
-  vcpu             = 1
-  memory           = 512
-  haproxy_version  = "2.0.14"
-  registry_version = "2.7.1"
+  base_img = "/var/lib/libvirt/images/fedora-coreos-31.20200310.3.0-qemu.x86_64.qcow2"
+  vcpu     = 1
+  memory   = 512
+  size     = 20 # Gigabytes
+}
+
+load_balancer = {
+  type    = "haproxy"
+  version = "2.0.14"
+}
+
+registry = {
+  version  = "2.7.1"
+  username = "ocp"
+  password = "changeme"
+  port     = 5000
 }
 
 ocp_bootstrap = {

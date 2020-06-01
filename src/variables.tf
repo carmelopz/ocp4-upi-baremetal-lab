@@ -5,6 +5,12 @@ variable "DEBUG" {
   default     = false
 }
 
+# Openshift version
+variable "OCP_VERSION" {
+  description = "Openshift version"
+  type        = string
+}
+
 # Pull secret for Red Hat registry
 variable "OCP_PULL_SECRET" {
   description = "Openshift pull secret"
@@ -42,11 +48,30 @@ variable "dns" {
 variable "helper_node" {
   description = "Configuration for helper node virtual machine"
   type = object({
-    base_img         = string,
-    vcpu             = number,
-    memory           = number,
-    haproxy_version  = string,
-    registry_version = string
+    base_img = string,
+    vcpu     = number,
+    memory   = number,
+    size     = number
+  })
+}
+
+# Load balancer specification
+variable "load_balancer" {
+  description = "Configuration for load balancer virtual machine"
+  type = object({
+    type    = string,
+    version = string
+  })
+}
+
+# Registry specification
+variable "registry" {
+  description = "Configuration for registry virtual machine"
+  type = object({
+    version  = string,
+    username = string,
+    password = string,
+    port     = number
   })
 }
 

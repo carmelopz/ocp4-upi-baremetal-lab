@@ -50,6 +50,7 @@ endif
 plan:
 	@echo "Planing infrastructure changes..."
 	terraform plan \
+		-var=OCP_VERSION=$(ocp_version) \
 		-var-file="$(tf_variables)/default.tfvars" \
 		-var-file="$(tf_variables)/$(environment).tfvars" \
 		-out "output/tf.$(environment).plan" \
@@ -65,6 +66,7 @@ destroy: plan
 	@echo "Destroying infrastructure..."
 	terraform destroy \
 		-auto-approve \
+		-var=OCP_VERSION=$(ocp_version) \
 		-var-file="$(tf_variables)/default.tfvars" \
 		-var-file="$(tf_variables)/$(environment).tfvars" \
 		$(tf_files)
