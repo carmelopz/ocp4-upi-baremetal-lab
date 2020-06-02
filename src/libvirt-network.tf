@@ -22,6 +22,11 @@ resource "libvirt_network" "openshift" {
     }
 
     hosts {
+      hostname = local.load_balancer.fqdn
+      ip       = local.load_balancer.ip
+    }
+
+    hosts {
       hostname = format("api.%s", var.dns.domain)
       ip       = local.load_balancer.ip
     }
