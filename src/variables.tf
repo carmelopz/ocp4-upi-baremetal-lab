@@ -68,10 +68,11 @@ variable "load_balancer" {
 variable "registry" {
   description = "Configuration for registry virtual machine"
   type = object({
-    version  = string,
-    username = string,
-    password = string,
-    port     = number
+    version    = string,
+    username   = string,
+    password   = string,
+    repository = string,
+    port       = number
   })
 }
 

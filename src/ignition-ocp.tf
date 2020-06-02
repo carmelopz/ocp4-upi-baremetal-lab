@@ -19,7 +19,7 @@ data "template_file" "ocp_install_config" {
     ocp_pods_cidr       = var.ocp_cluster.pods_cidr
     ocp_pods_range      = var.ocp_cluster.pods_range
     ocp_svcs_cidr       = var.ocp_cluster.svcs_cidr
-    ocp_registry_mirror = format("%s:%s/ocp4", local.registry.fqdn, var.registry.port)
+    ocp_registry_mirror = format("%s:%s/%s", local.registry.fqdn, var.registry.port, var.registry.repository)
     ocp_pull_secret     = jsonencode(local.ocp_pull_secret)
     ocp_ssh_pubkey      = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
     ocp_additional_ca   = indent(2, tls_self_signed_cert.ocp_root_ca.cert_pem)

@@ -11,10 +11,11 @@ load_balancer = {
 }
 
 registry = {
-  version  = "2.7.1"
-  username = "ocp"
-  password = "changeme"
-  port     = 5000
+  version    = "2.7.1"
+  username   = "ocp"
+  password   = "changeme"
+  repository = "ocp4/release"
+  port       = 5000
 }
 
 ocp_bootstrap = {

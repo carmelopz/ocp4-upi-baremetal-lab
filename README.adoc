@@ -120,8 +120,8 @@ export OCP_VERSION="x.y.z-arch"
 oc adm release mirror \
     --registry-config=src/registry/pull-secret.json \
     --from=quay.io/openshift-release-dev/ocp-release:${OCP_VERSION} \
-    --to=registry.ocp.bmlab.int:5000/ocp4 \
-    --to-release-image=registry.ocp.bmlab.int:5000/ocp4/${OCP_VERSION} \
+    --to=registry.ocp.bmlab.int:5000/ocp4/release \
+    --to-release-image=registry.ocp.bmlab.int:5000/ocp4/release:${OCP_VERSION} \
     --insecure=true
 ----
 
@@ -178,8 +178,8 @@ Mirror the Openshift registry with the new version images.
 oc adm release mirror \
     --registry-config=src/registry/pull-secret.json \
     --from=quay.io/openshift-release-dev/ocp-release:${UPGRADE_TO} \
-    --to=registry.ocp.bmlab.int:5000/ocp4 \
-    --to-release-image=registry.ocp.bmlab.int:5000/ocp4/${UPGRADE_TO} \
+    --to=registry.ocp.bmlab.int:5000/ocp4/release \
+    --to-release-image=registry.ocp.bmlab.int:5000/ocp4/release:${UPGRADE_TO} \
     --insecure=true
 ----
 
@@ -187,7 +187,7 @@ oc adm release mirror \
 ----
 oc adm upgrade \
     --allow-explicit-upgrade \
-    --to-image=registry.ocp.bmlab.int:5000/ocp4@${UPGRADE_DIGEST}
+    --to-image=registry.ocp.bmlab.int:5000/ocp4/release@${UPGRADE_DIGEST}
 ----
 
 == References

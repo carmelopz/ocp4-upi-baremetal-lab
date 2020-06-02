@@ -10,11 +10,10 @@ output "ocp_helper_node" {
 
 # Registry mirroring
 output "ocp_mirror" {
-  value = format("oc adm release mirror --registry-config=%s --from=%s --to=%s --to-release-image=%s --insecure=true",
-    local_file.ocp_pull_secret.filename,
-    format("quay.io/openshift-release-dev/ocp-release:%s-x86_64", var.OCP_VERSION),
-    format("%s:%s/ocp4", local.registry.fqdn, var.registry.port),
-    format("%s:%s/ocp4:%s-x86_64", local.registry.fqdn, var.registry.port, var.OCP_VERSION)
+  value = format("./upload-mirror-images.sh %s %s %s",
+    format("%s:%s/%s", local.registry.fqdn, var.registry.port, var.registry.repository),
+    format("%s-x86_64", var.OCP_VERSION),
+    local_file.ocp_pull_secret.filename
   )
 }
 
