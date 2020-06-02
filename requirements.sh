@@ -48,6 +48,23 @@ function install_tf_provider {
     rm -f ${provider_binary}.tar.gz
 }
 
+# install_oc <installation_dir> <oc_version>
+function install_oc {
+
+    oc_install_dir=${1}
+    oc_binary="${oc_install_dir}/oc"
+    oc_version=${2}
+
+    # Download oc
+    curl -L --output ${oc_binary}.tar.gz \
+        https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest-${OC_VERSION}/openshift-client-linux.tar.gz
+
+    # Install oc
+    tar -xvf ${oc_binary}.tar.gz -C ${oc_install_dir} oc
+    chmod +x ${oc_binary}
+    rm -f ${oc_binary}.tar.gz
+}
+
 # install_fcct <installation_dir> <fcct_version>
 function install_fcct {
 
@@ -88,6 +105,16 @@ else
     libvirt_tf_current_version=$(echo "$(${TF_PROVIDERS_DIR}/terraform-provider-libvirt -version)" |\
         head -n 1 | rev | cut -d " " -f 1 | rev)
     echo "Libvirt provider ${libvirt_tf_current_version} for Terraform is already installed."
+fi
+
+# Install Openshift client
+if ! (which oc &> /dev/null); then
+    echo "Installing OC ${OC_VERSION}..."
+    install_oc ${HOME}/bin ${OC_VERSION}
+    echo "Successfully installed!"
+else
+    oc_current_version=$(oc version --client)
+    echo "${oc_current_version} is already installed."
 fi
 
 # Install Fedora CoreOS Config Transpiler
