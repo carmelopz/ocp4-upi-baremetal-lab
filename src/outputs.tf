@@ -14,7 +14,7 @@ output "ocp_mirror" {
     local_file.ocp_pull_secret.filename,
     format("quay.io/openshift-release-dev/ocp-release:%s-x86_64", var.OCP_VERSION),
     format("%s:%s/ocp4", local.registry.fqdn, var.registry.port),
-    format("%s:%s/ocp4/%s-x86_64", local.registry.fqdn, var.registry.port, var.OCP_VERSION)
+    format("%s:%s/ocp4:%s-x86_64", local.registry.fqdn, var.registry.port, var.OCP_VERSION)
   )
 }
 
