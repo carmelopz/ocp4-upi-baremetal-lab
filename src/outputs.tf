@@ -9,12 +9,18 @@ output "ocp_helper_node" {
 }
 
 # Registry mirroring
-output "ocp_mirror" {
-  value = format("./upload-mirror-images.sh %s %s %s",
-    format("%s:%s/%s", local.registry.fqdn, var.registry.port, var.registry.repository),
-    format("%s-x86_64", var.OCP_VERSION),
-    local_file.ocp_pull_secret.filename
-  )
+output "ocp_registry" {
+  value = {
+    mirror_images = format("./upload-mirror-images.sh %s %s %s",
+      format("%s:%s/%s", local.registry.fqdn, var.registry.port, var.registry.repository),
+      format("%s-x86_64", var.OCP_VERSION),
+      local_file.ocp_pull_secret.filename
+    )
+    mirror_catalog = format("./upload-operator-catalog.sh %s %s %s",
+      format("%s:%s/%s", local.registry.fqdn, var.registry.port, var.registry.repository),
+      format("%s", var.OCP_VERSION),
+      local_file.ocp_pull_secret.filename
+    )
 }
 
 # OCP Bootstrap

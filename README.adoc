@@ -124,12 +124,8 @@ Mirror the Openshift registry (change OCP_VERSION value).
 ----
 export OCP_VERSION="x.y.z-arch"
 
-oc adm release mirror \
-    --registry-config=src/registry/pull-secret.json \
-    --from=quay.io/openshift-release-dev/ocp-release:${OCP_VERSION} \
-    --to=registry.ocp.bmlab.int:5000/ocp4/release \
-    --to-release-image=registry.ocp.bmlab.int:5000/ocp4/release:${OCP_VERSION} \
-    --insecure=true
+./upload-mirror-images.sh \
+    registry.ocp.bmlab.int:5000/ocp4/release ${OCP_VERSION} src/registry/pull-secret.json
 ----
 
 Deploy `+bootstrap+` node powering it on.
