@@ -105,7 +105,8 @@ variable "ocp_bootstrap" {
   type = object({
     base_img = string,
     vcpu     = number,
-    memory   = number
+    memory   = number,
+    size     = number
   })
 }
 
@@ -115,6 +116,7 @@ variable "ocp_master" {
   type = object({
     base_img = string,
     vcpu     = number,
-    memory   = number
+    memory   = number,
+    size     = number
   })
 }

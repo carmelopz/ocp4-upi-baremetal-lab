@@ -2,7 +2,21 @@ helper_node = {
   base_img = "/var/lib/libvirt/images/fedora-coreos-31.20200310.3.0-qemu.x86_64.qcow2"
   vcpu     = 1
   memory   = 512
-  size     = 20 # Gigabytes
+  size     = 60 # Gigabytes
+}
+
+ocp_bootstrap = {
+  base_img = "/var/lib/libvirt/images/rhcos-4.3.8-x86_64-qemu.x86_64.qcow2"
+  vcpu     = 2
+  memory   = 4096
+  size     = 60 # Gigabytes
+}
+
+ocp_master = {
+  base_img = "/var/lib/libvirt/images/rhcos-4.3.8-x86_64-qemu.x86_64.qcow2"
+  vcpu     = 3
+  memory   = 8192
+  size     = 60 # Gigabytes
 }
 
 load_balancer = {
@@ -16,16 +30,4 @@ registry = {
   password   = "changeme"
   repository = "ocp4/release"
   port       = 5000
-}
-
-ocp_bootstrap = {
-  base_img = "/var/lib/libvirt/images/rhcos-4.3.8-x86_64-qemu.x86_64.qcow2"
-  vcpu     = 2
-  memory   = 4096
-}
-
-ocp_master = {
-  base_img = "/var/lib/libvirt/images/rhcos-4.3.8-x86_64-qemu.x86_64.qcow2"
-  vcpu     = 3
-  memory   = 8192
 }

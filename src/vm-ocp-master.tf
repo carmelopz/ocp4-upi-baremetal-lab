@@ -39,6 +39,7 @@ resource "libvirt_volume" "ocp_master" {
   name           = format("%s-volume.qcow2", element(local.ocp_master, count.index).hostname)
   pool           = libvirt_pool.openshift.name
   base_volume_id = libvirt_volume.ocp_master_image.id
+  size           = var.ocp_master.size * pow(10, 9) # Bytes
   format         = "qcow2"
 }
 

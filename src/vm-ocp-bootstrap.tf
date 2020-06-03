@@ -31,6 +31,7 @@ resource "libvirt_volume" "ocp_bootstrap" {
   pool           = libvirt_pool.openshift.name
   base_volume_id = libvirt_volume.ocp_bootstrap_image.id
   format         = "qcow2"
+  size           = var.ocp_bootstrap.size * pow(10, 9) # Bytes
 }
 
 resource "libvirt_domain" "ocp_bootstrap" {
