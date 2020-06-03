@@ -166,28 +166,23 @@ virsh shutdown ocp-bootstrap
 
 === Upgrade cluster
 
-Get the digest for the new version.
+Mirror the Openshift registry with the new version images.
 
 [source,bash]
 ----
 export UPGRADE_TO="x.y.z-arch"
 
-oc adm release info quay.io/openshift-release-dev/ocp-release:${UPGRADE_TO}
-...
-Pull From: quay.io/openshift-release-dev/ocp-release@${UPGRADE_DIGEST}
-...
+./upload-mirror-images.sh \
+    registry.ocp.bmlab.int:5000/ocp4/release ${UPGRADE_TO} src/registry/pull-secret.json
 ----
 
-Mirror the Openshift registry with the new version images.
+Get the digest for the new version.
 
 [source,bash]
 ----
-oc adm release mirror \
-    --registry-config=src/registry/pull-secret.json \
-    --from=quay.io/openshift-release-dev/ocp-release:${UPGRADE_TO} \
-    --to=registry.ocp.bmlab.int:5000/ocp4/release \
-    --to-release-image=registry.ocp.bmlab.int:5000/ocp4/release:${UPGRADE_TO} \
-    --insecure=true
+oc adm release info \
+    quay.io/openshift-release-dev/ocp-release:${UPGRADE_TO} | grep "Pull From:"
+Pull From: quay.io/openshift-release-dev/ocp-release@${UPGRADE_DIGEST}
 ----
 
 [source,bash]
