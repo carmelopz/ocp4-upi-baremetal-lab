@@ -21,6 +21,7 @@ output "ocp_registry" {
       format("%s", var.OCP_VERSION),
       local_file.ocp_pull_secret.filename
     )
+  }
 }
 
 # OCP Bootstrap
