@@ -184,6 +184,7 @@ Pull From: quay.io/openshift-release-dev/ocp-release@${UPGRADE_DIGEST}
 [source,bash]
 ----
 oc adm upgrade \
+    --force \
     --allow-explicit-upgrade \
     --to-image=registry.ocp.bmlab.int:5000/ocp4/release@${UPGRADE_DIGEST}
 ----
