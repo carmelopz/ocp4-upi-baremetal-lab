@@ -1,84 +1,117 @@
 # Terraform parameters
-ocp_version="4.3.22"
-environment=localhost
-tf_cmd=terraform
-tf_files=src
-tf_backend_conf=configuration/backend
-tf_variables=configuration/tfvars
-libvirt_pool_dir=/var/lib/libvirt/storage
-libvirt_imgs_dir=/var/lib/libvirt/images
+ENVIRONMENT       := localhost
+TERRAFORM         := terraform
+TF_FILES_PATH     := src
+TF_BACKEND_CONF   := configuration/backend
+TF_VARIABLES      := configuration/tfvars
+LIBVIRT_IMGS_PATH := src/storage/images
+LIBVIRT_POOL_PATH := src/storage/volumes/openshift
+OCP_VERSION       := 4.4.7
+OCP_RELEASE       := $(shell echo $(OCP_VERSION) | head -c 3)
+OCP_INSTALLER     := openshift-install
+RHCOS_VERSION     := 4.4.3
+RHCOS_IMAGE_PATH  := $(LIBVIRT_IMGS_PATH)/rhcos-${RHCOS_VERSION}-x86_64-qemu.x86_64.qcow2
+FCOS_VERSION      := 32.20200629.3.0
+FCOS_IMAGE_PATH   := $(LIBVIRT_IMGS_PATH)/fedora-coreos-$(FCOS_VERSION).x86_64.qcow2
 
-all: init plan deploy test
-requirements:
-	@echo "Installing dependencies..."
+all: init deploy test
+
+require:
+	$(info Installing dependencies...)
 	@./requirements.sh
-init:
-	@echo "Elevating privileges..." && sudo -v
 
-	@echo "Initializing Terraform plugins"
-	terraform init \
-		-backend-config="$(tf_backend_conf)/$(environment).conf" $(tf_files)
+download-images:
+ifeq (,$(wildcard $(RHCOS_IMAGE_PATH)))
+	$(info Downloading Red Hat CoreOS image...)
+	curl -s -S -L -f -o $(RHCOS_IMAGE_PATH).gz \
+		https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/${OCP_RELEASE}/latest/rhcos-${RHCOS_VERSION}-x86_64-qemu.x86_64.qcow2.gz
 
-	@echo "Configuring dnsmasq..."
+	gunzip -c $(RHCOS_IMAGE_PATH).gz > $(RHCOS_IMAGE_PATH)
+
+	$(RM) -f $(RHCOS_IMAGE_PATH).gz
+else
+	$(info Red Hat CoreOS image already exists)
+endif
+
+ifeq (,$(wildcard $(FCOS_IMAGE_PATH)))
+	$(info Downloading Fedora CoreOS image...)
+	curl -s -S -L -f -o $(FCOS_IMAGE_PATH).xz \
+		https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/$(FCOS_VERSION)/x86_64/fedora-coreos-$(FCOS_VERSION)-qemu.x86_64.qcow2.xz
+
+	unxz -c $(FCOS_IMAGE_PATH).xz > $(FCOS_IMAGE_PATH)
+
+	$(RM) -f $(FCOS_IMAGE_PATH).xz
+else
+	$(info Fedora CoreOS image already exists)
+endif
+
+download-installer:
+	$(info Downloading Openshift installer...)
+ifeq (,$(wildcard $(OCP_INSTALLER)))
+	@wget -O $(OCP_INSTALLER)-linux.tar.gz \
+		https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$(OCP_VERSION)/openshift-install-linux.tar.gz
+	@tar -xvf $(OCP_INSTALLER)-linux.tar.gz $(OCP_INSTALLER)
+	$(RM) -f $(OCP_INSTALLER)-linux.tar.gz
+endif
+
+setup-libvirt:
+	$(info Configuring folder for libvirt pool storage...)
+	@install \
+		--mode="0750" \
+   		--context="system_u:object_r:virt_image_t:s0" \
+    	--directory $(LIBVIRT_POOL_PATH)
+
+setup-dns:
+	$(info Elevating privileges...)
+	@sudo -v
+
+	$(info Configuring dnsmasq...)
 	@sudo chmod 777 /etc/NetworkManager/conf.d
 	@sudo chmod 777 /etc/NetworkManager/dnsmasq.d
 
-	@echo "Configuring path $(libvirt_pool_dir) for libvirt pool storage..."
-	@sudo install \
-		--owner="root" \
-		--group="root" \
-		--mode="0750" \
-   		--context="system_u:object_r:virt_image_t:s0" \
-    	--directory $(libvirt_pool_dir)
+init: download-images download-installer setup-libvirt setup-dns
+	$(info Initializing Terraform...)
+	$(TERRAFORM) init \
+		-backend-config="$(TF_BACKEND_CONF)/$(ENVIRONMENT).conf" $(TF_FILES_PATH)
 
-	@echo "Creating directory $(libvirt_imgs_dir) for libvirt images..."
-	@sudo install \
-		--owner="root" \
-		--group="libvirt" \
-		--mode="0770" \
-   		--context="system_u:object_r:virt_image_t:s0" \
-    	--directory $(libvirt_imgs_dir)
+changes:
+	$(info Get changes in infrastructure resources...)
+	$(TERRAFORM) plan \
+		-var=OCP_VERSION=$(OCP_VERSION) \
+		-var-file="$(TF_VARIABLES)/default.tfvars" \
+		-var-file="$(TF_VARIABLES)/$(ENVIRONMENT).tfvars" \
+		-out "output/tf.$(ENVIRONMENT).plan" \
+		$(TF_FILES_PATH)
 
-	@echo "Downloading Openshift installer"
-ifeq (,$(wildcard openshift-install))
-	@wget -O openshift-install-linux.tar.gz \
-		https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$(ocp_version)/openshift-install-linux.tar.gz
-	@tar -xvf openshift-install-linux.tar.gz openshift-install
-	@rm -f openshift-install-linux.tar.gz
-endif
+deploy: changes
+	$(info Deploying infrastructure...)
+	$(TERRAFORM) apply output/tf.$(ENVIRONMENT).plan
 
-plan:
-	@echo "Planing infrastructure changes..."
-	terraform plan \
-		-var=OCP_VERSION=$(ocp_version) \
-		-var-file="$(tf_variables)/default.tfvars" \
-		-var-file="$(tf_variables)/$(environment).tfvars" \
-		-out "output/tf.$(environment).plan" \
-		$(tf_files)
-deploy:
-	@echo "Deploying infrastructure..."
-	terraform apply output/tf.$(environment).plan
 test:
-	@echo "Testing infrastructure..."
-destroy: plan
-	@echo "Elevating privileges..." && sudo -v
+	$(info Testing infrastructure...)
 
-	@echo "Destroying infrastructure..."
-	terraform destroy \
-		-auto-approve \
-		-var=OCP_VERSION=$(ocp_version) \
-		-var-file="$(tf_variables)/default.tfvars" \
-		-var-file="$(tf_variables)/$(environment).tfvars" \
-		$(tf_files)
-	@rm -rf .terraform
-	@rm -rf output/tf.$(environment).plan
-	@rm -rf state/terraform.$(environment).tfstate
+clean-installer:
+	$(info Deleting Openshift installation files...)
+	$(RM) -f openshift-install
+	$(RM) -rf src/ignition/openshift/$(ENVIRONMENT)
 
-	@echo "Deleting Openshift installation files..."
-	@rm -f openshift-install
-	@rm -rf src/ignition/openshift/$(environment)
+clean-dns:
+	$(info Elevating privileges...)
+	@sudo -v
 
-	@echo "Restoring network configuration..."
+	$(info Restoring network configuration...)
 	@sudo chmod 755 /etc/NetworkManager/conf.d
 	@sudo chmod 755 /etc/NetworkManager/dnsmasq.d
 	@sudo systemctl restart NetworkManager
+
+clean: changes clean-installer clean-dns 
+	$(info Destroying infrastructure...)
+	$(TERRAFORM) destroy \
+		-auto-approve \
+		-var=OCP_VERSION=$(OCP_VERSION) \
+		-var-file="$(TF_VARIABLES)/default.tfvars" \
+		-var-file="$(TF_VARIABLES)/$(ENVIRONMENT).tfvars" \
+		$(TF_FILES_PATH)
+	$(RM) -rf .terraform
+	$(RM) -rf output/tf.$(ENVIRONMENT).plan
+	$(RM) -rf state/terraform.$(ENVIRONMENT).tfstate

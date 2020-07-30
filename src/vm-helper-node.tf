@@ -1,26 +1,10 @@
 locals {
-
   helper_node = {
     hostname = "helper"
     fqdn     = format("helper.%s", var.dns.domain)
-    ip       = lookup(var.ocp_inventory, "helper").ip_address
-    mac      = lookup(var.ocp_inventory, "helper").mac_address
+    ip       = lookup(var.ocp_inventory, "helper").ip
+    mac      = lookup(var.ocp_inventory, "helper").mac
   }
-
-  load_balancer = {
-    hostname = "lb"
-    fqdn     = format("lb.%s", var.dns.domain)
-    ip       = lookup(var.ocp_inventory, "helper").ip_address
-    mac      = lookup(var.ocp_inventory, "helper").mac_address
-  }
-
-  registry = {
-    hostname = "registry"
-    fqdn     = format("registry.%s", var.dns.domain)
-    ip       = lookup(var.ocp_inventory, "helper").ip_address
-    mac      = lookup(var.ocp_inventory, "helper").mac_address
-  }
-
 }
 
 resource "libvirt_ignition" "helper_node" {

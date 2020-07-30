@@ -1,6 +1,6 @@
 libvirt = {
   pool      = "openshift"
-  pool_path = "/var/lib/libvirt/storage/openshift"
+  pool_path = "/var/lib/libvirt/images/openshift"
 }
 
 network = {
@@ -22,27 +22,40 @@ ocp_cluster = {
   pods_range  = 24
   svcs_cidr   = "172.255.0.0/16"
   num_masters = 3
+  num_workers = 3
 }
 
 ocp_inventory = {
   "helper" = {
-    ip_address  = "10.0.0.250"
-    mac_address = "0A:00:00:00:00:00"
+    ip  = "10.0.0.250"
+    mac = "0A:00:00:00:00:00"
   }
   "bootstrap" = {
-    ip_address  = "10.0.0.10"
-    mac_address = "AA:00:00:00:00:00"
+    ip  = "10.0.0.10"
+    mac = "AA:00:00:00:00:10"
   }
   "master00" = {
-    ip_address  = "10.0.0.11"
-    mac_address = "AA:00:00:00:00:01"
+    ip  = "10.0.0.11"
+    mac = "AA:00:00:00:00:11"
   }
   "master01" = {
-    ip_address  = "10.0.0.12"
-    mac_address = "AA:00:00:00:00:02"
+    ip  = "10.0.0.12"
+    mac = "AA:00:00:00:00:12"
   }
   "master02" = {
-    ip_address  = "10.0.0.13"
-    mac_address = "AA:00:00:00:00:03"
+    ip  = "10.0.0.13"
+    mac = "AA:00:00:00:00:13"
+  }
+  "worker00" = {
+    ip  = "10.0.0.101"
+    mac = "AA:00:00:00:01:01"
+  }
+  "worker01" = {
+    ip  = "10.0.0.102"
+    mac = "AA:00:00:00:01:02"
+  }
+  "worker02" = {
+    ip  = "10.0.0.103"
+    mac = "AA:00:00:00:01:03"
   }
 }

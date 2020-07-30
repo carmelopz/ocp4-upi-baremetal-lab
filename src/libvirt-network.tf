@@ -1,8 +1,8 @@
 resource "libvirt_network" "openshift" {
   name      = var.network.name
   domain    = var.dns.domain
-  mode      = "nat"
-  bridge    = "ocpvirbr0"
+  mode      = "route"
+  bridge    = "virbr-ocp"
   mtu       = 1500
   addresses = [ var.network.subnet ]
   autostart = true
@@ -78,6 +78,43 @@ resource "libvirt_network" "openshift" {
       priority = 0
       weight   = 100
     }
+
+    # Ingress controller routes
+    hosts {
+      hostname = format("console-openshift-console.apps.%s", var.dns.domain)
+      ip       = local.load_balancer.ip
+    }
+
+    hosts {
+      hostname = format("oauth-openshift.apps.%s", var.dns.domain)
+      ip       = local.load_balancer.ip
+    }
+
+    hosts {
+      hostname = format("grafana-openshift-monitoring.apps.%s", var.dns.domain)
+      ip       = local.load_balancer.ip
+    }
+
+    hosts {
+      hostname = format("prometheus-k8s-openshift-monitoring.apps.%s", var.dns.domain)
+      ip       = local.load_balancer.ip
+    }
+
+    hosts {
+      hostname = format("alertmanager-main-openshift-monitoring.apps.%s", var.dns.domain)
+      ip       = local.load_balancer.ip
+    }
+
+    hosts {
+      hostname = format("thanos-querier-openshift-monitoring.apps.%s", var.dns.domain)
+      ip       = local.load_balancer.ip
+    }
+
+    hosts {
+      hostname = format("downloads-openshift-console.apps.%s", var.dns.domain)
+      ip       = local.load_balancer.ip
+    }
+
   }
 
   xml {

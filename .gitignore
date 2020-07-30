@@ -41,15 +41,24 @@ override.tf.json
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Libvirt storage
+src/storage/images/*
+src/storage/volumes/*
+
 # Debug files
 openshift-install
+pull-secret.json
 src/ignition/helper-node/*
-!src/ignition/helper-node/ignition.yml.tpl
 src/ignition/openshift/*
-!src/ignition/openshift/install-config.yaml.tpl
 src/registry/pull-secret.json
+redhat-operators-manifests
 
 # Confidential data
 id_rsa*
 certificate.pem
 certificate.key
+
+# Keep files
+!*.gitkeep
+!src/ignition/helper-node/ignition.yml.tpl
+!src/ignition/openshift/install-config.yaml.tpl

@@ -16,8 +16,8 @@ if [ ! -f "${installation_dir}/master.ign" ]; then
     ./openshift-install create manifests --dir=${installation_dir} --log-level=debug
 
     # Do not make masters schedulables
-    # yq write -i ${installation_dir}/manifests/cluster-scheduler-02-config.yml \
-    #     'spec.mastersSchedulable' 'false'
+    yq write -i ${installation_dir}/manifests/cluster-scheduler-02-config.yml \
+        'spec.mastersSchedulable' 'false'
 
     # Generate ignitions files from manifests
     ./openshift-install create ignition-configs --dir=${installation_dir} --log-level=debug

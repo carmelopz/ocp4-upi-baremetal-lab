@@ -1,11 +1,11 @@
 locals {
   ocp_master = [
-    for master_index in range(var.ocp_cluster.num_masters) :
+    for index in range(var.ocp_cluster.num_masters) :
       {
-        hostname = format("master%02d", master_index)
-        fqdn     = format("master%02d.%s", master_index, var.dns.domain)
-        ip       = lookup(var.ocp_inventory, format("master%02d", master_index)).ip_address
-        mac      = lookup(var.ocp_inventory, format("master%02d", master_index)).mac_address
+        hostname = format("master%02d", index)
+        fqdn     = format("master%02d.%s", index, var.dns.domain)
+        ip       = lookup(var.ocp_inventory, format("master%02d", index)).ip
+        mac      = lookup(var.ocp_inventory, format("master%02d", index)).mac
       }
   ]
 }

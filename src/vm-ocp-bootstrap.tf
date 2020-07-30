@@ -2,8 +2,8 @@ locals {
   ocp_bootstrap = {
     hostname = "bootstrap"
     fqdn     = format("bootstrap.%s", var.dns.domain)
-    ip       = lookup(var.ocp_inventory, "bootstrap").ip_address
-    mac      = lookup(var.ocp_inventory, "bootstrap").mac_address
+    ip       = lookup(var.ocp_inventory, "bootstrap").ip
+    mac      = lookup(var.ocp_inventory, "bootstrap").mac
   }
 }
 
