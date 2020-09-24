@@ -5,125 +5,129 @@ set -o nounset  # exit when use undeclared variables
 set -o pipefail # return the exit code of the last command that threw a non-zero
 
 # Global variables
-TF_VERSION="0.12.28"
-TF_PROVIDERS_DIR="${HOME}/.terraform.d/plugins"
-TF_LIBVIRT_PROVIDER_VERSION="v0.6.2/terraform-provider-libvirt-0.6.2+git.1585292411.8cbe9ad0.Fedora_28.x86_64.tar.gz"
-OC_VERSION="4.5"
-FCCT_VERSION="0.6.0"
+TF_VERSION="0.13.2"
+TF_PROVIDERS_DIR="${HOME}/.terraform.d/plugins/registry.terraform.io/hashicorp"
+TF_PROVIDER_LIBVIRT_VERSION="0.6.2"
+TF_PROVIDER_LIBVIRT_RELEASE="v0.6.2/terraform-provider-libvirt-0.6.2+git.1585292411.8cbe9ad0.Fedora_28.x86_64"
+OC_VERSION="4.4"
 
-# install_terraform <installation_dir> <terraform_version>
+# install_libvirt
+function install_libvirt {
+    libvirt_command="virsh"
+
+    if (which ${libvirt_command} &> /dev/null); then
+        echo "Libvirt is already installed."
+    else
+        echo "Follow the instructions to install libvirt in your linux distribution."
+    fi
+
+    return 0
+}
+
+# install_terraform <version> <installation_dir>
 function install_terraform {
-    tf_installation_dir=${1}
-    tf_binary="${tf_installation_dir}/terraform"
-    tf_version=${2}
+    tf_command="terraform"
+    tf_version=${1}
+    tf_installation_dir=${2}
+    tf_binary="${tf_installation_dir}/${tf_command}"
 
-    # Create installation dir
-    mkdir -p ${tf_installation_dir}
+    # Check if Terraform is already installed
+    if (ls "${tf_binary}" &> /dev/null); then
+        echo "Terraform v${tf_version} is already installed"
+    else
+        echo "Installing Terraform v${tf_version}..."
 
-    # Download Terraform from Hashicorp site
-    curl -s -L --output ${tf_binary}.zip \
-        https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip
+        # Create installation dir
+        mkdir -p ${tf_installation_dir}
 
-    # Install Terraform
-    unzip -d ${tf_installation_dir} ${tf_binary}.zip
-    chmod +x ${tf_binary}
-    rm -f ${tf_binary}.zip
+        # Download Terraform from Hashicorp site
+        curl -s -L --output ${tf_binary}.zip \
+            https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip
+
+        # Install Terraform
+        unzip -d ${tf_installation_dir} ${tf_binary}.zip
+        chmod +x ${tf_binary}
+        rm -f ${tf_binary}.zip
+
+        echo "Successfully installed!"
+    fi
+
+    return 0
 }
 
-# install_tf_provider <installation_dir> <provider_name> <provider_source>
+# install_tf_provider <name> <version> <installation_dir> <url> <tar_additional_opts>
 function install_tf_provider {
-    provider_install_dir=${1}
-    provider_name=${2}
-    provider_binary="${provider_install_dir}/${provider_name}"
-    provider_src=${3}
+    provider_name=${1}
+    provider_version=${2}
+    provider_install_dir="${3}/${provider_name}/${provider_version}/linux_amd64"
+    provider_binary="${provider_install_dir}/terraform-provider-${provider_name}"
+    provider_url=${4}
+    tar_additional_opts=${5:-""}
 
-    # Create plugins dir
-    mkdir -p ${provider_install_dir}
+    # Check if provider is already installed
+    if (ls "${provider_binary}_${provider_version}" &> /dev/null); then
+        echo "Terraform provider ${provider_name} v${provider_version} is already installed"
+    else
+        echo "Installing Terraform provider ${provider_name} v${provider_version}..."
 
-    # Download provider from source
-    curl -s -L --output ${provider_binary}.tar.gz ${provider_src}
+        # Create installation folder
+        mkdir -p ${provider_install_dir}
 
-    # Install Provider
-    tar -xvf ${provider_binary}.tar.gz -C ${provider_install_dir}
-    chmod +x ${provider_binary}
-    rm -f ${provider_binary}.tar.gz
+        # Download provider from source
+        curl -s -L --output ${provider_binary}.tar.gz ${provider_url}
+
+        # Install Provider
+        tar -xvf ${provider_binary}.tar.gz ${tar_additional_opts} -C ${provider_install_dir}
+        chmod +x ${provider_binary}
+        mv ${provider_binary} "${provider_binary}_${provider_version}"
+        rm -f ${provider_binary}.tar.gz
+
+        echo "Successfully installed!"
+    fi
+
+    return 0
 }
 
-# install_oc <installation_dir> <oc_version>
+# install_oc <version> <installation_dir>
 function install_oc {
+    oc_command="oc"
+    oc_version=${1}
+    oc_install_dir=${2}
+    oc_binary="${oc_install_dir}/${oc_command}"
 
-    oc_install_dir=${1}
-    oc_binary="${oc_install_dir}/oc"
-    oc_version=${2}
+    # Check if oc is already installed
+    if (ls "${oc_binary}" &> /dev/null); then
+        echo "Openshift client v${oc_version} is already installed"
+    else
+        echo "Installing Openshift client v${oc_version}..."
 
-    # Download oc
-    curl -L --output ${oc_binary}.tar.gz \
-        https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest-${OC_VERSION}/openshift-client-linux.tar.gz
+        # Download oc
+        curl -L --output ${oc_binary}.tar.gz \
+            https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest-${OC_VERSION}/openshift-client-linux.tar.gz
 
-    # Install oc
-    tar -xvf ${oc_binary}.tar.gz -C ${oc_install_dir} oc
-    chmod +x ${oc_binary}
-    rm -f ${oc_binary}.tar.gz
-}
+        # Install oc
+        tar -xvf ${oc_binary}.tar.gz -C ${oc_install_dir} oc
+        chmod +x ${oc_binary}
+        rm -f ${oc_binary}.tar.gz
 
-# install_fcct <installation_dir> <fcct_version>
-function install_fcct {
+        echo "Successfully installed!"
+    fi
 
-    fcct_installation_dir=${1}
-    fcct_binary="${fcct_installation_dir}/fcct"
-    fcct_version=${2}
-
-    # Download and install fcct
-    curl -s -L --output ${fcct_binary} \
-        https://github.com/coreos/fcct/releases/download/v${fcct_version}/fcct-x86_64-unknown-linux-gnu
-    chmod +x ${fcct_binary}
+    return 0
 }
 
 # Install libvirt
-if ! (which virsh &> /dev/null); then
-    echo "Follow the instructions to install libvirt in your linux distribution."
-else
-    echo "Libvirt is already installed."
-fi
+install_libvirt
 
 # Install terraform
-if ! (which terraform &> /dev/null); then
-    echo "Installing Terraform ${TF_VERSION}..."
-    install_terraform ${HOME}/bin ${TF_VERSION}
-    echo "Successfully installed!"
-else
-    terraform_current_version=$(terraform version)
-    echo "${terraform_current_version} is already installed."
-fi
+install_terraform ${TF_VERSION} "${HOME}/bin"
 
-# Install libvirt provider plugin
-if ! (ls ${TF_PROVIDERS_DIR}/terraform-provider-libvirt &> /dev/null); then
-    echo "Installing libvirt provider for Terraform..."
-    install_tf_provider ${TF_PROVIDERS_DIR} terraform-provider-libvirt \
-        "https://github.com/dmacvicar/terraform-provider-libvirt/releases/download/${TF_LIBVIRT_PROVIDER_VERSION}"
-    echo "Successfully installed!"
-else
-    libvirt_tf_current_version=$(echo "$(${TF_PROVIDERS_DIR}/terraform-provider-libvirt -version)" |\
-        head -n 1 | rev | cut -d " " -f 1 | rev)
-    echo "Libvirt provider ${libvirt_tf_current_version} for Terraform is already installed."
-fi
+# Install libvirt provider for terraform
+install_tf_provider \
+    "libvirt" \
+    ${TF_PROVIDER_LIBVIRT_VERSION} \
+    ${TF_PROVIDERS_DIR} \
+    "https://github.com/dmacvicar/terraform-provider-libvirt/releases/download/${TF_PROVIDER_LIBVIRT_RELEASE}.tar.gz"
 
 # Install Openshift client
-if ! (which oc &> /dev/null); then
-    echo "Installing OC ${OC_VERSION}..."
-    install_oc ${HOME}/bin ${OC_VERSION}
-    echo "Successfully installed!"
-else
-    oc_current_version=$(oc version --client)
-    echo "${oc_current_version} is already installed."
-fi
-
-# Install Fedora CoreOS Config Transpiler
-if ! (which fcct &> /dev/null); then
-    echo "Installing FCCT ${FCCT_VERSION}..."
-    install_fcct ${HOME}/bin ${FCCT_VERSION}
-    echo "Successfully installed!"
-else
-    fcct_current_version=$(fcct --version)
-    echo "${fcct_current_version} is already installed."
-fi
+install_oc ${OC_VERSION} "${HOME}/bin"

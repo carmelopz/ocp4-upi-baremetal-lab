@@ -1,13 +1,3 @@
-data "template_file" "openshift_libvirt_dns" {
-
-  template = file(format("%s/dns/libvirt-dns.xml.tpl", path.module))
-
-  vars = {
-    ocp_wildcard_domain = format("apps.%s", var.dns.domain)
-    ocp_ingress_lb      = local.load_balancer.ip
-  }
-}
-
 data "template_file" "openshift_dnsmasq" {
 
   template = file(format("%s/dns/openshift_dnsmasq.conf", path.module))

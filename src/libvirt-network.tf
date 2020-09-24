@@ -80,45 +80,54 @@ resource "libvirt_network" "openshift" {
     }
 
     # Ingress controller routes
-    hosts {
-      hostname = format("console-openshift-console.apps.%s", var.dns.domain)
-      ip       = local.load_balancer.ip
-    }
-
-    hosts {
-      hostname = format("oauth-openshift.apps.%s", var.dns.domain)
-      ip       = local.load_balancer.ip
-    }
-
-    hosts {
-      hostname = format("grafana-openshift-monitoring.apps.%s", var.dns.domain)
-      ip       = local.load_balancer.ip
-    }
-
-    hosts {
-      hostname = format("prometheus-k8s-openshift-monitoring.apps.%s", var.dns.domain)
-      ip       = local.load_balancer.ip
-    }
-
-    hosts {
-      hostname = format("alertmanager-main-openshift-monitoring.apps.%s", var.dns.domain)
-      ip       = local.load_balancer.ip
-    }
-
-    hosts {
-      hostname = format("thanos-querier-openshift-monitoring.apps.%s", var.dns.domain)
-      ip       = local.load_balancer.ip
-    }
-
-    hosts {
-      hostname = format("downloads-openshift-console.apps.%s", var.dns.domain)
-      ip       = local.load_balancer.ip
+    dynamic "hosts" {
+      for_each = [
+        "console-openshift-console",
+        "oauth-openshift",
+        "grafana-openshift-monitoring",
+        "prometheus-k8s-openshift-monitoring",
+        "alertmanager-main-openshift-monitoring",
+        "thanos-querier-openshift-monitoring",
+        "downloads-openshift-console"
+      ]
+      content {
+        hostname = format("%s.apps.%s", hosts.value, var.dns.domain)
+        ip       = local.load_balancer.ip
+      }
     }
 
   }
 
+  # Wildcard for ingress controller routes
   xml {
-    xslt = data.template_file.openshift_libvirt_dns.rendered
+    xslt = <<EOL
+<?xml version="1.0" ?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:dnsmasq="http://libvirt.org/schemas/network/dnsmasq/1.0">
+
+     <!-- Identity template -->
+    <xsl:template match="@* | node()">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- Override for target element -->
+    <xsl:template match="network">
+        <!-- Copy the element -->
+        <xsl:copy>
+            <!-- And everything inside it -->
+            <xsl:apply-templates select="@* | node()"/>
+            <!-- Additional dnsmasq options -->
+            <dnsmasq:options>
+                <dnsmasq:option value="address=/${format("apps.%s", var.dns.domain)}/${local.load_balancer.ip}"/>
+            </dnsmasq:options>
+        </xsl:copy>
+    </xsl:template>
+
+</xsl:stylesheet>
+EOL
   }
 
   depends_on = [

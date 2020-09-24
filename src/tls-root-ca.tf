@@ -13,7 +13,7 @@ resource "tls_self_signed_cert" "ocp_root_ca" {
   subject {
     common_name         = "OCP Root CA"
     organization        = "OCP"
-    organizational_unit = "Baremetal Disconnected"
+    organizational_unit = "Metal3 Baremetal"
     country             = "ES"
     locality            = "Madrid"
     province            = "Madrid"
@@ -26,14 +26,14 @@ resource "tls_self_signed_cert" "ocp_root_ca" {
 }
 
 resource "local_file" "ocp_root_ca_certificate_pem" {
-  filename             = format("%s/ca/root-ca/certificate.pem", path.module)
+  filename             = format("output/ca/root-ca/%s/certificate.pem", var.OCP_ENVIRONMENT)
   content              = tls_self_signed_cert.ocp_root_ca.cert_pem
   file_permission      = "0600"
   directory_permission = "0700"
 }
 
 resource "local_file" "ocp_root_ca_private_key_pem" {
-  filename             = format("%s/ca/root-ca/certificate.key", path.module)
+  filename             = format("output/ca/root-ca/%s/certificate.key", var.OCP_ENVIRONMENT)
   content              = tls_private_key.ocp_root_ca.private_key_pem
   file_permission      = "0600"
   directory_permission = "0700"

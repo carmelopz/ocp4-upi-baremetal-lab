@@ -11,9 +11,9 @@ variable "OCP_VERSION" {
   type        = string
 }
 
-# Pull secret for Red Hat registry
-variable "OCP_PULL_SECRET" {
-  description = "Openshift pull secret"
+# Openshift environment
+variable "OCP_ENVIRONMENT" {
+  description = "Openshift environment"
   type        = string
 }
 
@@ -49,13 +49,13 @@ variable "ocp_cluster" {
   description = "Openshift cluster information"
   type        = object({
     name        = string,
-    environment = string,
     dns_domain  = string,
     pods_cidr   = string,
     pods_range  = number,
     svcs_cidr   = string,
     num_masters = number,
-    num_workers = number
+    num_workers = number,
+    operators   = list(string),
   })
 }
 
@@ -98,6 +98,14 @@ variable "registry" {
     password   = string,
     repository = string,
     port       = number
+  })
+}
+
+# NFS specification
+variable "nfs" {
+  description = "Configuration for NFS virtual machine"
+  type = object({
+    version    = string
   })
 }
 

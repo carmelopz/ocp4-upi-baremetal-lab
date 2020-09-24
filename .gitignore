@@ -1,5 +1,6 @@
 # Local .terraform directories
 **/.terraform/*
+**/output/*
 
 # .tfstate files
 *.tfstate
@@ -46,19 +47,16 @@ src/storage/images/*
 src/storage/volumes/*
 
 # Debug files
-openshift-install
-pull-secret.json
-src/ignition/helper-node/*
-src/ignition/openshift/*
-src/registry/pull-secret.json
-redhat-operators-manifests
+/openshift-install
+**/olm/*/database
+**/olm/*/manifests
 
 # Confidential data
 id_rsa*
 certificate.pem
 certificate.key
+pull-secret.json
 
 # Keep files
 !*.gitkeep
-!src/ignition/helper-node/ignition.yml.tpl
-!src/ignition/openshift/install-config.yaml.tpl
+!README*

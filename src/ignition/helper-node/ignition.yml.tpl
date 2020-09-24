@@ -1,5 +1,5 @@
 variant: fcos
-version: 1.0.0
+version: 1.1.0
 passwd:
   users:
     - name: maintuser
@@ -15,6 +15,11 @@ passwd:
       shell: /usr/sbin/nologin
     - name: registry
       uid: 9998
+      system: true
+      no_create_home: true
+      shell: /usr/sbin/nologin
+    - name: nfs
+      uid: 9997
       system: true
       no_create_home: true
       shell: /usr/sbin/nologin
@@ -50,6 +55,18 @@ storage:
         name: registry
       group:
         name: registry
+    - path: /etc/nfs
+      mode: 0755
+      user:
+        name: nfs
+      group:
+        name: nfs
+    - path: /var/lib/nfs/data
+      mode: 0755
+      user:
+        name: nfsnobody
+      group:
+        name: nfsnobody
   files:
     - path: /etc/hostname
       overwrite: true
@@ -144,9 +161,9 @@ storage:
           backend ingress-http
               balance source
               mode tcp
-              server infra00 ${ocp_master_0_fqdn}:80 check resolvers dns
-              server infra01 ${ocp_master_1_fqdn}:80 check resolvers dns
-              server infra02 ${ocp_master_2_fqdn}:80 check resolvers dns
+              server infra00 ${ocp_infra_0_fqdn}:80 check resolvers dns
+              server infra01 ${ocp_infra_1_fqdn}:80 check resolvers dns
+              server infra02 ${ocp_infra_2_fqdn}:80 check resolvers dns
 
           frontend ingress-https
               bind *:443
@@ -157,9 +174,9 @@ storage:
           backend ingress-https
               balance source
               mode tcp
-              server infra00 ${ocp_master_0_fqdn}:443 check resolvers dns
-              server infra01 ${ocp_master_1_fqdn}:443 check resolvers dns
-              server infra02 ${ocp_master_2_fqdn}:443 check resolvers dns
+              server infra00 ${ocp_infra_0_fqdn}:443 check resolvers dns
+              server infra01 ${ocp_infra_1_fqdn}:443 check resolvers dns
+              server infra02 ${ocp_infra_2_fqdn}:443 check resolvers dns
     - path: /etc/registry/configuration.env
       overwrite: true
       mode: 0644
@@ -204,6 +221,18 @@ storage:
       contents:
         inline: |
           ${registry_tls_private_key}
+    - path: /etc/nfs/configuration.env
+      overwrite: true
+      mode: 0644
+      user:
+        name: root
+      group:
+        name: root
+      contents:
+        inline: |
+          NFS_DIR="/nfs-share"
+          NFS_DOMAIN="*"
+          NFS_OPTION="fsid=0,rw,sync,insecure,all_squash,anonuid=65534,anongid=65534,no_subtree_check,nohide"
 systemd:
   units:
     - name: haproxy.service
@@ -256,6 +285,33 @@ systemd:
             --volume   /var/lib/registry/auth:/auth:ro,z \
             --volume   /var/lib/registry/certs:/certs:ro,z \
             docker.io/registry:${registry_version}
+        Restart=on-failure
+        RestartSec=5
+        ExecStop=/bin/podman stop %n
+        ExecReload=/bin/podman restart %n
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: nfs.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=NFS Server
+        Documentation=https://linux-nfs.org/wiki/index.php/Main_Page
+        After=network-online.target
+        Wants=network-online.target
+
+        [Service]
+        Type=simple
+        TimeoutStartSec=180
+        StandardOutput=journal
+        ExecStartPre=-/bin/podman pull docker.io/gists/nfs-server:${nfs_version}
+        ExecStart=/bin/podman run --name %n --rm \
+            --privileged \
+            --publish 2049:2049 \
+            --env-file /etc/nfs/configuration.env \
+            --volume  /var/lib/nfs/data:/nfs-share:z \
+            docker.io/gists/nfs-server:${nfs_version}
         Restart=on-failure
         RestartSec=5
         ExecStop=/bin/podman stop %n

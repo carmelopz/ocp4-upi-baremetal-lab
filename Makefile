@@ -5,8 +5,7 @@ TF_FILES_PATH     := src
 TF_BACKEND_CONF   := configuration/backend
 TF_VARIABLES      := configuration/tfvars
 LIBVIRT_IMGS_PATH := src/storage/images
-LIBVIRT_POOL_PATH := src/storage/volumes/openshift
-OCP_VERSION       := 4.4.7
+OCP_VERSION       := 4.4.16
 OCP_RELEASE       := $(shell echo $(OCP_VERSION) | head -c 3)
 OCP_INSTALLER     := openshift-install
 RHCOS_VERSION     := 4.4.3
@@ -24,7 +23,7 @@ download-images:
 ifeq (,$(wildcard $(RHCOS_IMAGE_PATH)))
 	$(info Downloading Red Hat CoreOS image...)
 	curl -s -S -L -f -o $(RHCOS_IMAGE_PATH).gz \
-		https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/${OCP_RELEASE}/latest/rhcos-${RHCOS_VERSION}-x86_64-qemu.x86_64.qcow2.gz
+		https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/${OCP_RELEASE}/${RHCOS_VERSION}/rhcos-${RHCOS_VERSION}-x86_64-qemu.x86_64.qcow2.gz
 
 	gunzip -c $(RHCOS_IMAGE_PATH).gz > $(RHCOS_IMAGE_PATH)
 
@@ -54,13 +53,6 @@ ifeq (,$(wildcard $(OCP_INSTALLER)))
 	$(RM) -f $(OCP_INSTALLER)-linux.tar.gz
 endif
 
-setup-libvirt:
-	$(info Configuring folder for libvirt pool storage...)
-	@install \
-		--mode="0750" \
-   		--context="system_u:object_r:virt_image_t:s0" \
-    	--directory $(LIBVIRT_POOL_PATH)
-
 setup-dns:
 	$(info Elevating privileges...)
 	@sudo -v
@@ -69,7 +61,7 @@ setup-dns:
 	@sudo chmod 777 /etc/NetworkManager/conf.d
 	@sudo chmod 777 /etc/NetworkManager/dnsmasq.d
 
-init: download-images download-installer setup-libvirt setup-dns
+init: download-images download-installer setup-dns
 	$(info Initializing Terraform...)
 	$(TERRAFORM) init \
 		-backend-config="$(TF_BACKEND_CONF)/$(ENVIRONMENT).conf" $(TF_FILES_PATH)
@@ -78,6 +70,7 @@ changes:
 	$(info Get changes in infrastructure resources...)
 	$(TERRAFORM) plan \
 		-var=OCP_VERSION=$(OCP_VERSION) \
+		-var=OCP_ENVIRONMENT=$(ENVIRONMENT) \
 		-var-file="$(TF_VARIABLES)/default.tfvars" \
 		-var-file="$(TF_VARIABLES)/$(ENVIRONMENT).tfvars" \
 		-out "output/tf.$(ENVIRONMENT).plan" \
@@ -92,8 +85,7 @@ test:
 
 clean-installer:
 	$(info Deleting Openshift installation files...)
-	$(RM) -f openshift-install
-	$(RM) -rf src/ignition/openshift/$(ENVIRONMENT)
+	$(RM) openshift-install
 
 clean-dns:
 	$(info Elevating privileges...)
@@ -109,9 +101,12 @@ clean: changes clean-installer clean-dns
 	$(TERRAFORM) destroy \
 		-auto-approve \
 		-var=OCP_VERSION=$(OCP_VERSION) \
+		-var=OCP_ENVIRONMENT=$(ENVIRONMENT) \
 		-var-file="$(TF_VARIABLES)/default.tfvars" \
 		-var-file="$(TF_VARIABLES)/$(ENVIRONMENT).tfvars" \
 		$(TF_FILES_PATH)
-	$(RM) -rf .terraform
-	$(RM) -rf output/tf.$(ENVIRONMENT).plan
-	$(RM) -rf state/terraform.$(ENVIRONMENT).tfstate
+	$(RM) -r .terraform
+	$(RM) -r output/tf.$(ENVIRONMENT).plan
+	$(RM) -r output/openshift-install/$(ENVIRONMENT)
+	$(RM) -r output/mirror/$(ENVIRONMENT)
+	$(RM) -r state/terraform.$(ENVIRONMENT).tfstate

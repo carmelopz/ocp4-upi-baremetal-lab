@@ -1,0 +1,8 @@
+= Monitoring stack
+
+Move all monitoring stack components to `+infrastructure+` nodes and configure Prometheus to store only 1 day data.
+
+[source,bash]
+----
+oc apply -f cluster-monitoring-config.yml
+----

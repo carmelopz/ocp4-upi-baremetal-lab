@@ -16,13 +16,15 @@ dns = {
 
 ocp_cluster = {
   name        = "ocp"
-  environment = "localhost"
   dns_domain  = "bmlab.int"
   pods_cidr   = "172.0.0.0/16"
   pods_range  = 24
   svcs_cidr   = "172.255.0.0/16"
   num_masters = 3
   num_workers = 3
+  operators   = [
+    "red-hat-quay"
+  ]
 }
 
 ocp_inventory = {

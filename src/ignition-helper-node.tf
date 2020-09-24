@@ -21,30 +21,36 @@ data "template_file" "helper_node_ignition" {
     registry_tls_certificate = indent(10, local.registry_tls.certificate)
     registry_tls_private_key = indent(10, local.registry_tls.private_key)
 
+    nfs_version = var.nfs.version
+
     ocp_bootstrap_fqdn = local.ocp_bootstrap.fqdn
     ocp_master_0_fqdn  = local.ocp_master.0.fqdn
     ocp_master_1_fqdn  = local.ocp_master.1.fqdn
     ocp_master_2_fqdn  = local.ocp_master.2.fqdn
+    ocp_infra_0_fqdn   = local.ocp_worker.0.fqdn
+    ocp_infra_1_fqdn   = local.ocp_worker.1.fqdn
+    ocp_infra_2_fqdn   = local.ocp_worker.2.fqdn
   }
 }
 
-resource "local_file" "helper_node_ignition" {
-  filename             = format("%s/ignition/helper-node/ignition.yml", path.module)
-  content              = data.template_file.helper_node_ignition.rendered
-  file_permission      = "0644"
-  directory_permission = "0755"
-
-  provisioner "local-exec" {
-    command = format("fcct --pretty --strict < %s > %s",
-        format("%s/ignition/helper-node/ignition.yml", path.module),
-        format("%s/ignition/helper-node/ignition.json", path.module))
-  }
+data "ct_config" "helper_node_ignition" {
+  content      = data.template_file.helper_node_ignition.rendered
+  strict       = true
+  pretty_print = true
 }
 
-# BUG: Will be allways recreated https://github.com/hashicorp/terraform/issues/11806 (milestone TF 0.13)
-data "local_file" "helper_node_ignition" {
-  filename   = format("%s/ignition/helper-node/ignition.json", path.module)
-  depends_on = [
-    local_file.helper_node_ignition
-  ]
+resource "local_file" "helper_node_ignition_rendered" {
+
+  count = var.DEBUG ? 1 : 0
+
+  filename             = format("output/ignition/helper-node.json")
+  content              = data.ct_config.helper_node_ignition.rendered
+  file_permission      = "0600"
+  directory_permission = "0700"
+
+  lifecycle {
+    ignore_changes = [
+      content
+    ]
+  }
 }

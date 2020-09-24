@@ -5,12 +5,28 @@ locals {
     ip       = lookup(var.ocp_inventory, "helper").ip
     mac      = lookup(var.ocp_inventory, "helper").mac
   }
+
+  registry = {
+    hostname = "registry"
+    fqdn     = format("registry.%s", var.dns.domain)
+    address  = format("registry.%s:%s", var.dns.domain, var.registry.port)
+    ip       = lookup(var.ocp_inventory, "helper").ip
+    mac      = lookup(var.ocp_inventory, "helper").mac
+  }
+
+  load_balancer = {
+    hostname = "lb"
+    fqdn     = format("lb.%s", var.dns.domain)
+    ip       = lookup(var.ocp_inventory, "helper").ip
+    mac      = lookup(var.ocp_inventory, "helper").mac
+  }
+
 }
 
 resource "libvirt_ignition" "helper_node" {
   name    = format("%s.ign", local.helper_node.hostname)
   pool    = libvirt_pool.openshift.name
-  content = data.local_file.helper_node_ignition.content
+  content = data.ct_config.helper_node_ignition.rendered
 
   lifecycle {
     ignore_changes = [

@@ -1,8 +1,8 @@
 helper_node = {
   id       = "helper"
   base_img = "src/storage/images/fedora-coreos-32.20200629.3.0.x86_64.qcow2"
-  vcpu     = 1
-  memory   = 512
+  vcpu     = 2
+  memory   = 4096
   size     = 200 # Gigabytes
 }
 
@@ -19,12 +19,16 @@ registry = {
   port       = 5000
 }
 
+nfs = {
+  version = "2.4.3"
+}
+
 ocp_bootstrap = {
   id       = "bootstrap"
   base_img = "src/storage/images/rhcos-4.4.3-x86_64-qemu.x86_64.qcow2"
   vcpu     = 2
   memory   = 4096
-  size     = 50 # Gigabytes
+  size     = 60 # Gigabytes
 }
 
 ocp_master = {
@@ -32,7 +36,7 @@ ocp_master = {
   base_img = "src/storage/images/rhcos-4.4.3-x86_64-qemu.x86_64.qcow2"
   vcpu     = 4
   memory   = 16384
-  size     = 50 # Gigabytes
+  size     = 120 # Gigabytes
 }
 
 ocp_worker = {

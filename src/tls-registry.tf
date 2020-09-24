@@ -8,9 +8,9 @@ resource "tls_cert_request" "ocp_registry" {
   key_algorithm   = tls_private_key.ocp_registry.algorithm
 
   subject {
-    common_name         = "Registry"
+    common_name         = "OCP Registry"
     organization        = "OCP"
-    organizational_unit = "Baremetal Disconnected"
+    organizational_unit = "Metal3 Baremetal"
     country             = "ES"
     locality            = "Madrid"
     province            = "Madrid"
@@ -46,7 +46,7 @@ resource "local_file" "ocp_registry_certificate_pem" {
 
   count = var.DEBUG ? 1 : 0
 
-  filename             = format("%s/ca/clients/registry/certificate.pem", path.module)
+  filename             = format("output/ca/clients/registry/%s/certificate.pem", var.OCP_ENVIRONMENT)
   content              = tls_locally_signed_cert.ocp_registry.cert_pem
   file_permission      = "0600"
   directory_permission = "0700"
@@ -56,7 +56,7 @@ resource "local_file" "ocp_registry_private_key_pem" {
 
   count = var.DEBUG ? 1 : 0
 
-  filename             = format("%s/ca/clients/registry/private.key", path.module)
+  filename             = format("output/ca/clients/registry/%s/private.key", var.OCP_ENVIRONMENT)
   content              = tls_private_key.ocp_registry.private_key_pem
   file_permission      = "0600"
   directory_permission = "0700"

@@ -4,7 +4,9 @@ Deploy Openshift 4 on libvirt using Terraform without Internet access.
 
 image::assets/architecture.svg[align="center", Openshift 4 disconnected architecture]
 
-== Minimum hardware requirements
+== Requirements
+
+=== Hardware
 
 The minimun requirements allow to deploy a 3 master/worker nodes cluster.
 
@@ -12,7 +14,7 @@ The minimun requirements allow to deploy a 3 master/worker nodes cluster.
 - vCPU 12
 - Storage 300GB
 
-== Software requirements
+=== Software
 
 - Libvirt 5.6.0+
 - Terraform 0.12.26+
@@ -22,20 +24,18 @@ The minimun requirements allow to deploy a 3 master/worker nodes cluster.
 - UnZip 6.00+
 - YQ parser 3.3.2+
 
-=== Install libvirt
-
-Install libvirt following https://docs.fedoraproject.org/en-US/quick-docs/getting-started-with-virtualization/index.html[official documentacion].
-
 === Install requirements
 
-The `+requirements.sh+` will install all needed requirements.
+The `+requirements.sh+` script will install all needed requirements.
 
 [source,bash]
 ----
 make require
 ----
 
-== Setup Libvirt
+==== Setup Libvirt
+
+Install libvirt following https://docs.fedoraproject.org/en-US/quick-docs/getting-started-with-virtualization/index.html[official documentacion].
 
 Add your user to the `+libvirt+` group.
 
@@ -58,7 +58,7 @@ Check if libvirt is running.
 virsh version --daemon
 ----
 
-=== QEMU permissions
+==== QEMU permissions
 
 The provider does not currently support to create volumes with different mode than `+root:root+` so QEMU agent must run as priviledged.
 
@@ -75,31 +75,40 @@ Restart libvirt daemon.
 systemctl restart libvirtd
 ----
 
-== Deploy cluster
+==== Download pull secret
 
-Get your pull secret from cloud.redhat.com and copy it to the `+pull-secret.json+` file. Export the pull secret as a Terraform variable.
+Get your pull secret from `+cloud.redhat.com+` and copy it to the `+src/openshift-install/${OCP_ENVIRONMENT}+` folder (create the folder for your environment if it does not exist).
 
 [source,bash]
 ----
-export TF_VAR_OCP_PULL_SECRET="$(cat pull-secret.json)"
+src/ocp
+ ├── dev
+ │   └── pull-secret.json
+ ├── pre
+ │   └── pull-secret.json
+ └── pro
+     └── pull-secret.json
 ----
 
-Deploy Openshift cluster.
+== Install Openshift 4
+
+Deploy Openshift 4 cluster.
 
 [source,bash]
 ----
 make
 ----
 
-Mirror the Openshift registry (change OCP_VERSION value).
+=== Mirror registry (disconnected)
+
+Mirror the images used during the installation to the external registry.
 
 [source,bash]
 ----
-export OCP_VERSION="x.y.z-arch"
-
-./upload-mirror-images.sh \
-    registry.ocp.bmlab.int:5000/ocp4/release ${OCP_VERSION} src/registry/pull-secret.json
+./output/openshift-install/${OCP_ENVIRONMENT}/mirror-release-image.sh
 ----
+
+=== Bootstrap
 
 Power on `+bootstrap+` node.
 
@@ -108,29 +117,29 @@ Power on `+bootstrap+` node.
 virsh start ocp-bootstrap
 ----
 
+=== Control plane
+
 Wait until bootstrap is up and running to power on master nodes.
 
 [source,bash]
 ----
-for i in $(seq 0 2); do
-    virsh start "ocp-master0$i"
-done
+for i in $(seq 0 2); do virsh start "ocp-master0$i"; done
 ----
+
+=== Worker nodes
 
 Wait until master nodes are up and running to power on worker nodes.
 
 [source,bash]
 ----
-for i in $(seq 0 2); do
-    virsh start "ocp-worker0$i"
-done
+for i in $(seq 0 2); do virsh start "ocp-worker0$i"; done
 ----
 
 Approve all pending CSR to allow nodes registration (run the command twice to ensure that all certificates are signed).
 
 [source,bash]
 ----
-export KUBECONFIG="src/ignition/openshift/localhost/auth/kubeconfig"
+export KUBECONFIG="$(pwd)/output/openshift-install/localhost/auth/kubeconfig"
 for run in $(seq 0 1); do
     oc get csr \
         -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' |\
@@ -146,21 +155,7 @@ Verify the Openshift cluster is correctly created.
 oc get nodes
 ----
 
-Add `+node-role.kubernetes.io/infra+` label to worker nodes.
-
-[source,bash]
-----
-for i in $(seq 0 2); do
-    oc label node "worker0$i" node-role.kubernetes.io/infra=""
-done
-----
-
-Scale to 3 replicas and move the `+default ingress controller+` to infra nodes.
-
-[source,bash]
-----
-oc apply -f src/ingress
-----
+=== Destroy bootstrap node
 
 Finally, shutdown the bootstrap node.
 
@@ -169,72 +164,20 @@ Finally, shutdown the bootstrap node.
 virsh shutdown ocp-bootstrap
 ----
 
-=== Enable OLM
+=== Infrastructure nodes
 
-Mirror the operators catalog.
-
-[source,bash]
-----
-export OCP_VERSION="x.y.z-arch"
-
-./upload-operator-catalog.sh \
-    registry.ocp.bmlab.int:5000 ${OCP_VERSION} src/registry/pull-secret.json
-----
-
-IMPORTANT: This process will take up to 10 hours and needs ~100GB, be patient.
-
-=== Samples operator
-
-Disable samples operator.
+Add `+node-role.kubernetes.io/infra+` label to worker nodes.
 
 [source,bash]
 ----
-oc patch configs.samples cluster \
-    --type=merge --patch '{"spec":{"managementState":"Removed"}}'
+oc label node -l node-role.kubernetes.io/worker="" \
+    node-role.kubernetes.io/infra=""
 ----
 
-=== Openshift registry
+== Day-2 operations
 
-Disable internal Openshift registry.
-
-[source,bash]
-----
-oc patch configs.imageregistr cluster \
-    --type=merge --patch '{"spec":{"managementState":"Removed"}}'
-----
-
-=== Upgrade cluster
-
-Mirror the Openshift registry with the new version images.
-
-[source,bash]
-----
-export UPGRADE_TO="x.y.z-arch"
-
-./upload-mirror-images.sh \
-    registry.ocp.bmlab.int:5000/ocp4/release ${UPGRADE_TO} src/registry/pull-secret.json
-----
-
-Get the digest for the new version.
-
-[source,bash]
-----
-oc adm release info \
-    quay.io/openshift-release-dev/ocp-release:${UPGRADE_TO} | grep "Pull From:"
-Pull From: quay.io/openshift-release-dev/ocp-release@${UPGRADE_DIGEST}
-----
-
-Upgrade to the desired version.
-
-[source,bash]
-----
-oc adm upgrade \
-    --force \
-    --allow-explicit-upgrade \
-    --to-image=registry.ocp.bmlab.int:5000/ocp4/release@${UPGRADE_DIGEST}
-----
+Once Openshift has been deployed in can be configured with the instructions in `+day-two+` folder resources.
 
 == References
 
 - https://docs.openshift.com/container-platform/4.4/welcome/index.html
-- https://docs.openshift.com/container-platform/4.4/operators/olm-restricted-networks.html

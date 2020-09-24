@@ -1,0 +1,8 @@
+= Ingress controller
+
+Scale up the default `IngressController` to 3 replicas and move it to `+infrastructure+` nodes.
+
+[source,bash]
+----
+oc apply -f ingress-controller-default.yml
+----
