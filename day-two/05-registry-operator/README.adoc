@@ -1,0 +1,23 @@
+= Registry
+
+OpenShift Image Registry is a tightly integrated with OpenShift Origin application that lets you distribute Docker images.
+
+== Configuration
+
+Modify the `+Config+` object to configure Openshift internal registry.
+
+[source,yaml]
+----
+include::registry/cluster.yml[]
+----
+
+Create the object using the `+oc apply+` command on this file.
+
+[source,bash]
+----
+oc apply -f registry/cluster.yml
+----
+
+== References
+
+- https://github.com/openshift/image-registry

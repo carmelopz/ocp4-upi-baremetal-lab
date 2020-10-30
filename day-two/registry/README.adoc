@@ -1,9 +1,0 @@
-= Registry
-
-Disable internal Openshift registry.
-
-[source,bash]
-----
-oc patch configs.imageregistr cluster \
-    --type=merge --patch '{"spec":{"managementState":"Removed"}}'
-----

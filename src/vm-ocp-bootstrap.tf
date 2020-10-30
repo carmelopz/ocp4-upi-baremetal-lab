@@ -42,6 +42,10 @@ resource "libvirt_domain" "ocp_bootstrap" {
 
   coreos_ignition = libvirt_ignition.ocp_bootstrap.id
 
+  cpu = {
+    mode = "host-passthrough"
+  }
+
   disk {
     volume_id = libvirt_volume.ocp_bootstrap.id
     scsi      = false

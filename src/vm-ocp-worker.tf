@@ -43,6 +43,16 @@ resource "libvirt_volume" "ocp_worker" {
   format         = "qcow2"
 }
 
+resource "libvirt_volume" "ocp_worker_lso" {
+
+  count = var.ocp_cluster.num_workers
+
+  name           = format("%s-lso-volume.qcow2", element(local.ocp_worker, count.index).hostname)
+  pool           = libvirt_pool.openshift.name
+  size           = 100 * pow(10, 9) # Bytes
+  format         = "qcow2"
+}
+
 resource "libvirt_domain" "ocp_worker" {
 
   count = var.ocp_cluster.num_workers
@@ -54,9 +64,18 @@ resource "libvirt_domain" "ocp_worker" {
 
   coreos_ignition = element(libvirt_ignition.ocp_worker.*.id, count.index)
 
+  cpu = {
+    mode = "host-passthrough"
+  }
+
   disk {
     volume_id = element(libvirt_volume.ocp_worker.*.id, count.index)
     scsi      = false
+  }
+
+  disk {
+    volume_id = element(libvirt_volume.ocp_worker_lso.*.id, count.index)
+    scsi      = true
   }
 
   network_interface {

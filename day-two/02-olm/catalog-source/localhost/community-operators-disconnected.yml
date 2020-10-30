@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: community-operators-disconnected
+  namespace: openshift-marketplace
+spec:
+  displayName: Community Operators (Disconnected)
+  image: registry.ocp.bmlab.int:5000/olm/community-operators:v4.4-v1
+  sourceType: grpc
+  publisher: Manual

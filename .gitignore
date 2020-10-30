@@ -48,8 +48,7 @@ src/storage/volumes/*
 
 # Debug files
 /openshift-install
-**/olm/*/database
-**/olm/*/manifests
+**/02-olm/*/catalogs
 
 # Confidential data
 id_rsa*

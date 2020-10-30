@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-reader
+  namespace: grafana-operator
+  labels:
+    app: grafana-operator
+    component: prometheus
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: read-prometheus-metrics
+  namespace: grafana-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-monitoring-view
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-reader
+    namespace: grafana-operator

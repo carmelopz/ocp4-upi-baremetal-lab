@@ -1,0 +1,102 @@
+= Openshift 4 backup
+
+The Openshift 4 backup generates 2 different files with the date when it was performed.
+
+[source]
+----
+- snapshot_2020-10-30_153108.db
+- static_kuberesources_2020-10-30_153108.tar.gz
+----
+
+The `+.db+` file is a snapshot of the etcd and the `+.tar.gz+` contains the `+static pods+` of the control plane (etcd, api server, controller manager and scheduler) with their respective certificates and private keys. The backup that is made in a master contains the information of all masters, so it is only necessary to make it in a single master.
+
+== CronJob
+
+To do this from within Openshift we will create a `+CronJob+` that runs every day at `+3:30+` in the morning and saves the resulting files in a PVC.
+
+Create `+etcd-backup+` namespace.
+
+[source,bash]
+----
+oc apply -f cronjob/00-namespace.yml
+----
+
+Create RBAC rules. The backup is done using the root user from a master, therefore the SA must use the `+priviledged SCC+`.
+
+[source,bash]
+----
+oc apply -f cronjob/01-rbac.yml -n etcd-backup
+----
+
+Create a PVC to store the resulting backup files (choose size based on etcd size and retention period).
+
+[source,bash]
+----
+$ oc apply -f cronjob/02-pvc.yml -n etcd-backup
+
+$ oc get pvc etcd-backup-files -n etcd-backup
+NAME                STATUS   VOLUME              CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+etcd-backup-files   Bound    etcd-backup-files   10Gi        RWX                          8s
+----
+
+Create the `+CronJob+` to perform the backup periodically (change schedule if needed).
+
+[source,bash]
+----
+$ oc apply -f cronjob/03-cronjob.yml -n etcd-backup
+
+$ oc get cronjob etcd-backup -n etcd-backup
+NAME          SCHEDULE     SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+etcd-backup   30 3 * * *   False     0        <none>          3s
+----
+
+=== Testing
+
+To test the backup, run a `+Job+` from the `+CronJob+`.
+
+[source,bash]
+----
+JOB_NAME="etcd-backup-manual-$(date +%s)"
+
+# oc client < 4.5
+$ oc create job --from=cronjob/etcd-backup ${JOB_NAME} --dry-run -o yaml |\
+    sed 's/apps\/v1/batch\/v1beta1/' | oc create -f -
+
+# oc client > 4.4
+$ oc create job --from=cronjob/etcd-backup ${JOB_NAME}
+
+$ oc logs -l job-name=${JOB_NAME} -n etcd-backup
+0a4704d82b8682c34f09b05032641942cfcc51519be4318d53b4658181de5fb4
+etcdctl version: 3.3.22
+API version: 3.3
+found latest kube-apiserver-pod: /etc/kubernetes/static-pod-resources/kube-apiserver-pod-8
+found latest kube-controller-manager-pod: /etc/kubernetes/static-pod-resources/kube-controller-manager-pod-8
+found latest kube-scheduler-pod: /etc/kubernetes/static-pod-resources/kube-scheduler-pod-9
+found latest etcd-pod: /etc/kubernetes/static-pod-resources/etcd-pod-2
+2020-09-24 14:11:49.091032 I | clientv3: opened snapshot stream; downloading
+2020-09-24 14:11:50.824565 I | clientv3: completed snapshot read; closing
+Snapshot saved at /home/core/assets/backup/snapshot_2020-09-24_141148.db
+snapshot db and kube resources are successfully saved to /home/core/assets/backup
+sending incremental file list
+snapshot_2020-09-24_141148.db
+static_kuberesources_2020-09-24_141148.tar.gz
+
+sent 125,528,531 bytes  received 54 bytes  83,685,723.33 bytes/sec
+total size is 125,497,687  speedup is 1.00
+----
+
+Verify that the backup has been correctly created in the storage backend.
+
+[source,bash]
+----
+$ ls -alh /var/lib/nfs/data/etcd-backup
+total 73M
+drwxr-xr-x. 2 nfsnobody nfsnobody  96 oct 30 15:31 .
+drwxr-xr-x. 3 nfsnobody nfsnobody  25 oct 30 15:15 ..
+-rw-r--r--. 1 nfsnobody nfsnobody 73M oct 30 15:31 snapshot_2020-10-30_153108.db
+-rw-r--r--. 1 nfsnobody nfsnobody 61K oct 30 15:31 static_kuberesources_2020-10-30_153108.tar.gz
+----
+
+== References
+
+- https://docs.openshift.com/container-platform/4.6/backup_and_restore/backing-up-etcd.html

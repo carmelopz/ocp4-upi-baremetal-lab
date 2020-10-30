@@ -15,7 +15,7 @@ registry = {
   version    = "2.7.1"
   username   = "ocp"
   password   = "changeme"
-  repository = "ocp4/release"
+  repository = "ocp4"
   port       = 5000
 }
 

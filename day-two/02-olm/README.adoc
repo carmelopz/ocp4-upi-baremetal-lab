@@ -1,0 +1,104 @@
+= OLM
+
+The Operator Lifecycle Manager (OLM) helps users install, update, and manage the lifecycle of all Operators and their associated services running across their clusters.
+
+== Disable online catalogs
+
+If the cluster is disconnected, online catalogs are not available and can be safely removed.
+
+[source,bash]
+----
+oc patch OperatorHub cluster --type json \
+    -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+----
+
+== Mirror operator catalog
+
+Mirror the catalog image for `+redhat-operators+` (certified-operators and comunnity-operators are also available).
+
+[source,bash]
+----
+source environment/${ENVIRONMENT}.env
+
+./mirror-olm.sh mirror-catalog \
+    --ocp-release="${OCP_RELEASE}" \
+    --catalog-name="redhat-operators" \
+    --catalog-image="${REDHAT_OPERATORS_CATALOG_IMAGE}" \
+    --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json" \
+    --arch="linux/amd64"
+----
+
+Download the catalog database.
+
+[source,bash]
+----
+source environment/${ENVIRONMENT}.env
+
+./mirror-olm.sh download-db \
+    --catalog-name="redhat-operators" \
+    --catalog-image="${REDHAT_OPERATORS_CATALOG_IMAGE}" \
+    --catalog-repository="${REDHAT_OPERATORS_CATALOG_REPO}" \
+    --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json"
+----
+
+Create the `+CatalogSource+` object.
+
+[source,bash]
+----
+oc apply -f catalog-source/localhost/redhat-operators-disconnected.yml
+----
+
+Create the `+ImageContentSourcePolicy+` object.
+
+[source,bash]
+----
+oc apply -f catalogs/redhat-operators/imageContentSourcePolicy.yaml
+----
+
+== Mirror operator images
+
+Mirror images for the `+ocs-operator+` in the `+redhat-operators+` catalog.
+
+[source,bash]
+----
+./mirror-olm.sh mirror-operator \
+    --catalog-path="catalogs/redhat-operators" \
+    --operator-name="ocs-operator.v4.5.1" \
+    --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json"
+----
+
+== Troubleshooting
+
+Forward catalog service port to query information from localhost.
+
+[source,bash]
+----
+oc port-forward service/redhat-operators-disconnected 50051:50051
+----
+
+List all the operators in the catalog.
+
+[source,bash]
+----
+grpcurl -plaintext localhost:50051 api.Registry/ListPackages
+----
+
+Get information for an operator in a catalog.
+
+[source,bash]
+----
+grpcurl -plaintext -d '{"name":"${OPERATOR_NAME}"}' \
+    localhost:50051 api.Registry/GetPackage
+----
+
+Get information for an specific channel.
+
+[source,bash]
+----
+grpcurl -plaintext -d '{"pkgName":"${OPERATOR_NAME}", "channelName":"${OPERATOR_CHANNEL}"}' \
+    localhost:50051 api.Registry/GetBundleForChannel
+----
+
+== References
+
+- https://github.com/operator-framework/operator-lifecycle-manager

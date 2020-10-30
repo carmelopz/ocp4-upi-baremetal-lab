@@ -1,0 +1,18 @@
+global:
+  resolve_timeout: 5m
+receivers:
+  - name: default
+    webhook_configs:
+      - url: "http://alertmanager-receiver.openshift-monitoring.svc:6725"
+        send_resolved: true
+  - name: watchdog
+route:
+  group_wait: 5m
+  group_interval: 10m
+  repeat_interval: 12h
+  receiver: default
+  routes:
+    - match:
+        alertname: Watchdog
+      repeat_interval: 5m
+      receiver: watchdog

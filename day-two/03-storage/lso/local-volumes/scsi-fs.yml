@@ -1,0 +1,23 @@
+---
+apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
+metadata:
+  name: scsi-fs
+  namespace: openshift-lso
+  labels:
+    app: lso
+    component: scsi-fs
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - values: [ "scsi-fs" ]
+            operator: In
+            key: local.storage.openshift.io/lso
+  storageClassDevices:
+    - storageClassName: scsi-fs
+      volumeMode: Filesystem
+      devicePaths:
+        - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-1
+        - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-1
+        - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-1

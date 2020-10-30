@@ -18,7 +18,7 @@ resource "local_file" "ocp_install_mirror_release_image" {
       --registry-config=${local_file.ocp_pull_secret.filename} \
       --from=quay.io/openshift-release-dev/ocp-release:${local.ocp_installer.version_arch} \
       --to=${local.registry.address}/${var.registry.repository} \
-      --to-release-image=${local.registry.address}/${var.registry.repository}:${local.ocp_installer.version_arch} \
+      --to-release-image=${local.registry.address}/${var.registry.repository}/release:${local.ocp_installer.version_arch} \
       --insecure=true
   EOF
 }
@@ -49,15 +49,8 @@ resource "local_file" "ocp_install_config" {
   provisioner "local-exec" {
     command = <<-EOF
       if [ ! -f "${local.ocp_installer.path}/master.ign" ]; then
-          # Generate manifests from install-config.yaml file
-          ./openshift-install create manifests --dir=${local.ocp_installer.path} --log-level=debug
-
-          # Do not make masters schedulables
-          yq write -i ${local.ocp_installer.path}/manifests/cluster-scheduler-02-config.yml \
-              'spec.mastersSchedulable' 'false'
-
           # Generate ignitions files from manifests
-          ./openshift-install create ignition-configs --dir=${local.ocp_installer.path} --log-level=debug
+          ./openshift-install create ignition-configs --dir=${local.ocp_installer.path}
       fi
     EOF
   }

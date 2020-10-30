@@ -1,0 +1,10 @@
+apiVersion: cincinnati.openshift.io/v1beta1
+kind: Cincinnati
+metadata:
+  name: openshift-update-service-instance
+  namespace: openshift-cincinnati
+spec:
+  replicas: 1
+  registry: quay.io
+  repository: openshift-release-dev/ocp-release
+  graphDataImage: registry.ocp.bmlab.int:5000/cincinnati-graph-data-container:latest

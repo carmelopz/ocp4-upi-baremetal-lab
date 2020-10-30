@@ -164,19 +164,9 @@ Finally, shutdown the bootstrap node.
 virsh shutdown ocp-bootstrap
 ----
 
-=== Infrastructure nodes
-
-Add `+node-role.kubernetes.io/infra+` label to worker nodes.
-
-[source,bash]
-----
-oc label node -l node-role.kubernetes.io/worker="" \
-    node-role.kubernetes.io/infra=""
-----
-
 == Day-2 operations
 
-Once Openshift has been deployed in can be configured with the instructions in `+day-two+` folder resources.
+Once Openshift 4 has been deployed in can be configured with the instructions in `+day-two+` folder resources.
 
 == References
 

@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: scsi-fs-consumer
+  namespace: openshift-lso-test
+  labels:
+    application: lso
+    component: consumer
+spec:
+  replicas: 3
+  revisionHistoryLimit: 3
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      application: lso
+      component: consumer
+  template:
+    metadata:
+      labels:
+        application: lso
+        component: consumer
+    spec:
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      containers:
+        - name: container-one
+          image: ubi8/ubi-minimal:8.1-407
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/bash", "-c" ]
+          args:
+            - while true; do echo $(date) >> /var/lib/lso/date.log; sleep 1; done;
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/lso
+          resources:
+            limits:
+              cpu: 50m
+              memory: 64Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchExpressions:
+                  - key: component
+                    operator: In
+                    values:
+                      - consumer
+              topologyKey: "kubernetes.io/hostname"
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          application: lso
+          component: consumer
+      spec:
+        storageClassName: scsi-fs
+        resources:
+          requests:
+            storage: 1Gi
+        accessModes:
+          - ReadWriteOnce

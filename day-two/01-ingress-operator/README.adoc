@@ -1,0 +1,33 @@
+= Ingress Operator
+
+Ingress Operator is an OpenShift component which enables external access to cluster services by configuring Ingress Controllers, which route traffic as specified by OpenShift Route and Kubernetes Ingress resources.
+
+== Configuration
+
+Modify the `+IngressController+` object to increase the number of replicas, allocate in infrastructure nodes or tune the configuration.
+
+[source,yaml]
+----
+include::ingress-controller/default.yml[]
+----
+
+Create the object using the `+oc apply+` command on this file.
+
+[source,bash]
+----
+oc apply -f ingress-controller/default.yml
+----
+
+Wait until the new router is succesfully rolled out.
+
+[source,bash]
+----
+$ oc get deploy router-default -n openshift-ingress
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+router-default   3/3     3            3           98m
+----
+
+== References
+
+- https://github.com/openshift/cluster-ingress-operator
+- https://github.com/openshift/router

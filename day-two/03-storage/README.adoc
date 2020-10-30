@@ -1,0 +1,63 @@
+= Storage
+
+OpenShift uses the Kubernetes persistent volume (PV) framework to allow cluster administrators to provision persistent storage for a cluster. Developers can use persistent volume claims (PVCs) to request PV resources without having specific knowledge of the underlying storage infrastructure.
+
+== NFS
+
+When using `+NFS+` as storage backend, the `+PV+` must be previously created.
+
+[source,yaml]
+----
+include::nfs/etcd-backup-pv.yml[]
+----
+
+Create the object using the `+oc apply+` command on this file.
+
+[source,bash]
+----
+oc apply -f nfs/etcd-backup-pv.yml
+----
+
+== Local Storage Operator (LSO)
+
+Install `+Local Storage Operator+` from Openshift marketplace.
+
+[source,bash]
+----
+oc apply -f lso/
+----
+
+Add a disk to each node and label these nodes to schedule the persistent volumes created by the `+LSO+` on them.
+
+[source,bash]
+----
+oc label nodes -l node-role.kubernetes.io/worker= \
+    local.storage.openshift.io/lso=scsi-fs
+----
+
+Get the device ID for the new disk in each node.
+
+[source,bash]
+----
+$ ls -al /dev/disk/by-id/
+lrwxrwxrwx. 1 root root   9 Oct 29 11:45 scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-1 -> ../../sda
+----
+
+Update the `+LocalVolume+` object definition with the disk ID in each node.
+
+[source,yaml]
+----
+include::lso/local-volumes/scsi-fs.yml[]
+----
+
+Create the object using the `+oc apply+` command on this file.
+
+[source,bash]
+----
+oc apply -f lso/local-volumes/scsi-fs.yml
+----
+
+== References
+
+- https://github.com/openshift/local-storage-operator
+- https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage

@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager-receiver
+  labels:
+    app: alertmanager
+    component: webhook-receiver
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: alertmanager
+      component: webhook-receiver
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+        component: webhook-receiver
+    spec:
+      containers:
+        - name: http-server
+          image: datica/alertmanager-webhook-logger:latest
+          ports:
+            - containerPort: 6725
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "250m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-receiver
+spec:
+  ports:
+  - port: 6725
+    targetPort: 6725
+  selector:
+    app: alertmanager
+    component: webhook-receiver

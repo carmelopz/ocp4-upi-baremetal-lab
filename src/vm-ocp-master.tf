@@ -54,6 +54,10 @@ resource "libvirt_domain" "ocp_master" {
 
   coreos_ignition = element(libvirt_ignition.ocp_master.*.id, count.index)
 
+  cpu = {
+    mode = "host-passthrough"
+  }
+
   disk {
     volume_id = element(libvirt_volume.ocp_master.*.id, count.index)
     scsi      = false

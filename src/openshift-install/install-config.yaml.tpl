@@ -9,7 +9,7 @@ controlPlane:
 compute:
   - name: worker
     hyperthreading: Enabled
-    replicas: 0
+    replicas: 3
 platform:
   none: {}
 networking:
