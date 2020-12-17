@@ -1,0 +1,28 @@
+= RBAC
+
+Add users to groups.
+
+[source,bash]
+----
+oc apply -f groups.yml
+----
+
+Configure RBAC.
+
+[source,bash]
+----
+oc apply -f cluster-role-bindings.yml
+----
+
+== Disabling project self-provisioning
+
+You can prevent an authenticated user group from self-provisioning new projects.
+
+[source,bash]
+----
+oc patch clusterrolebinding.rbac self-provisioners -p '{"subjects": null}'
+----
+
+== References
+
+- https://kubernetes.io/docs/reference/access-authn-authz/rbac

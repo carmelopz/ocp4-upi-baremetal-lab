@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: Route
+metadata:
+  name: app-hostport
+  namespace: example-app-testing
+  labels:
+    app: example
+    routerName: stress-hostport
+spec:
+  to:
+    kind: Service
+    name: app-example
+
+---
+apiVersion: v1
+kind: Route
+metadata:
+  name: app-hostport-secure
+  namespace: example-app-testing
+  labels:
+    app: example
+    routerName: stress-hostport
+spec:
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: app-example

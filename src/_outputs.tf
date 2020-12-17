@@ -9,28 +9,28 @@ output "ocp_helper_node" {
 }
 
 # OCP Bootstrap
-output "ocp_bootstrap_node" {
-  value = {
-    fqdn = local.ocp_bootstrap.fqdn
-    ip   = local.ocp_bootstrap.ip
-    ssh  = format("ssh -i %s core@%s", local_file.ssh_maintuser_private_key.filename, local.ocp_bootstrap.fqdn)
-  }
-}
+# output "ocp_bootstrap_node" {
+#   value = {
+#     fqdn = local.ocp_bootstrap.fqdn
+#     ip   = local.ocp_bootstrap.ip
+#     ssh  = format("ssh -i %s core@%s", local_file.ssh_maintuser_private_key.filename, local.ocp_bootstrap.fqdn)
+#   }
+# }
 
-# OCP masters
-output "ocp_masters" {
-  value = {
-    fqdn = local.ocp_master.*.fqdn
-    ip   = local.ocp_master.*.ip
-    ssh  = formatlist("ssh -i %s core@%s", local_file.ssh_maintuser_private_key.filename, local.ocp_master.*.fqdn)
-  }
-}
+# # OCP masters
+# output "ocp_masters" {
+#   value = {
+#     fqdn = local.ocp_master.*.fqdn
+#     ip   = local.ocp_master.*.ip
+#     ssh  = formatlist("ssh -i %s core@%s", local_file.ssh_maintuser_private_key.filename, local.ocp_master.*.fqdn)
+#   }
+# }
 
-# OCP workers
-output "ocp_workers" {
-  value = {
-    fqdn = local.ocp_worker.*.fqdn
-    ip   = local.ocp_worker.*.ip
-    ssh  = formatlist("ssh -i %s core@%s", local_file.ssh_maintuser_private_key.filename, local.ocp_worker.*.fqdn)
-  }
-}
+# # OCP workers
+# output "ocp_workers" {
+#   value = {
+#     fqdn = local.ocp_worker.*.fqdn
+#     ip   = local.ocp_worker.*.ip
+#     ssh  = formatlist("ssh -i %s core@%s", local_file.ssh_maintuser_private_key.filename, local.ocp_worker.*.fqdn)
+#   }
+# }

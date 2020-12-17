@@ -24,7 +24,7 @@ resource "local_file" "ocp_install_mirror_release_image" {
 }
 
 data "template_file" "ocp_install_config" {
-  template = file(format("%s/openshift-install/install-config.yaml.tpl", path.module))
+  template = file(format("%s/openshift-install/%s/install-config.yaml.tpl", path.module, local.ocp_installer.release))
 
   vars = {
     ocp_cluster_name    = var.ocp_cluster.name

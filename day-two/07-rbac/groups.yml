@@ -1,0 +1,23 @@
+---
+apiVersion: user.openshift.io/v1
+kind: Group
+metadata:
+  name: cluster-administrators
+users:
+  - samuelvl
+
+---
+apiVersion: user.openshift.io/v1
+kind: Group
+metadata:
+  name: frontend-devs
+users:
+  - alice
+
+---
+apiVersion: user.openshift.io/v1
+kind: Group
+metadata:
+  name: bigdata-devs
+users:
+  - bob

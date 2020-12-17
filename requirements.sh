@@ -5,11 +5,11 @@ set -o nounset  # exit when use undeclared variables
 set -o pipefail # return the exit code of the last command that threw a non-zero
 
 # Global variables
-TF_VERSION="0.13.2"
+TF_VERSION="0.14.2"
 TF_PROVIDERS_DIR="${HOME}/.terraform.d/plugins/registry.terraform.io/hashicorp"
-TF_PROVIDER_LIBVIRT_VERSION="0.6.2"
-TF_PROVIDER_LIBVIRT_RELEASE="v0.6.2/terraform-provider-libvirt-0.6.2+git.1585292411.8cbe9ad0.Fedora_28.x86_64"
-OC_VERSION="4.4"
+TF_PROVIDER_LIBVIRT_VERSION="0.6.3"
+TF_PROVIDER_LIBVIRT_RELEASE="v0.6.3/terraform-provider-libvirt-0.6.3+git.1604843676.67f4f2aa.Fedora_32.x86_64"
+OC_VERSION="4.6"
 
 # install_libvirt
 function install_libvirt {

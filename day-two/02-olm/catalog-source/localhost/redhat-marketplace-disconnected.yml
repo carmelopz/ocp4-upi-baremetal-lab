@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: redhat-marketplace-disconnected
+  namespace: openshift-marketplace
+spec:
+  displayName: Red Hat Marketplace (Disconnected)
+  image: registry.ocp.bmlab.int:5000/olm/redhat-marketplace:v4.6-v1
+  sourceType: grpc
+  publisher: Disconnected
+updateStrategy:
+  registryPoll: 
+    interval: 8h

@@ -7,20 +7,30 @@ locals {
     {
       id          = "redhat-operators-disconnected"
       description = "Red Hat Operators (Disconnected)"
+      publisher   = "Disconnected"
       repository  = format("%s/olm/redhat-operators", local.registry.address)
       image       = format("%s/olm/redhat-operators:v%s", local.registry.address, local.olm.version)
     },
     {
       id          = "certified-operators-disconnected"
       description = "Certified Operators (Disconnected)"
+      publisher   = "Disconnected"
       repository  = format("%s/olm/certified-operators", local.registry.address)
       image       = format("%s/olm/certified-operators:v%s", local.registry.address, local.olm.version)
     },
     {
       id          = "community-operators-disconnected"
       description = "Community Operators (Disconnected)"
+      publisher   = "Disconnected"
       repository  = format("%s/olm/community-operators", local.registry.address)
       image       = format("%s/olm/community-operators:v%s", local.registry.address, local.olm.version)
+    },
+    {
+      id          = "redhat-marketplace-disconnected"
+      description = "Red Hat Marketplace (Disconnected)"
+      publisher   = "Disconnected"
+      repository  = format("%s/olm/redhat-marketplace", local.registry.address)
+      image       = format("%s/olm/redhat-marketplace:v%s", local.registry.address, local.olm.version)
     }
   ]
 }
@@ -43,7 +53,10 @@ resource "local_file" "olm_catalog_source" {
       displayName: ${local.olm_catalogs[count.index].description}
       image: ${local.olm_catalogs[count.index].image}
       sourceType: grpc
-      publisher: Manual
+      publisher: ${local.olm_catalogs[count.index].publisher}
+    updateStrategy:
+      registryPoll: 
+        interval: 8h
   EOF
 }
 

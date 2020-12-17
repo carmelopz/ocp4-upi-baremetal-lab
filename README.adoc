@@ -33,31 +33,6 @@ The `+requirements.sh+` script will install all needed requirements.
 make require
 ----
 
-==== Setup Libvirt
-
-Install libvirt following https://docs.fedoraproject.org/en-US/quick-docs/getting-started-with-virtualization/index.html[official documentacion].
-
-Add your user to the `+libvirt+` group.
-
-[source,bash]
-----
-usermod -a -G libvirt maintuser
-----
-
-Use `+virsh+` command utility to configure libvirt.
-
-[source,bash]
-----
-export LIBVIRT_DEFAULT_URI="qemu:///system"
-----
-
-Check if libvirt is running.
-
-[source,bash]
-----
-virsh version --daemon
-----
-
 ==== QEMU permissions
 
 The provider does not currently support to create volumes with different mode than `+root:root+` so QEMU agent must run as priviledged.
@@ -81,7 +56,7 @@ Get your pull secret from `+cloud.redhat.com+` and copy it to the `+src/openshif
 
 [source,bash]
 ----
-src/ocp
+src/openshift-install
  ├── dev
  │   └── pull-secret.json
  ├── pre
@@ -132,6 +107,9 @@ Wait until master nodes are up and running to power on worker nodes.
 
 [source,bash]
 ----
+./openshift-install wait-for bootstrap-complete \
+  --dir output/openshift-install/${OCP_ENVIRONMENT}
+
 for i in $(seq 0 2); do virsh start "ocp-worker0$i"; done
 ----
 
@@ -140,12 +118,10 @@ Approve all pending CSR to allow nodes registration (run the command twice to en
 [source,bash]
 ----
 export KUBECONFIG="$(pwd)/output/openshift-install/localhost/auth/kubeconfig"
-for run in $(seq 0 1); do
-    oc get csr \
-        -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' |\
-            xargs oc adm certificate approve
-    sleep 10
-done
+
+oc get csr \
+    -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' |\
+        xargs oc adm certificate approve
 ----
 
 Verify the Openshift cluster is correctly created.

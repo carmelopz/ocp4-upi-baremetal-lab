@@ -48,14 +48,14 @@ variable "dns" {
 variable "ocp_cluster" {
   description = "Openshift cluster information"
   type        = object({
-    name        = string,
-    dns_domain  = string,
-    pods_cidr   = string,
-    pods_range  = number,
-    svcs_cidr   = string,
-    num_masters = number,
-    num_workers = number,
-    operators   = list(string),
+    name          = string,
+    dns_domain    = string,
+    pods_cidr     = string,
+    pods_range    = number,
+    svcs_cidr     = string,
+    num_masters   = number,
+    num_workers   = number,
+    operators     = list(string),
   })
 }
 
@@ -126,7 +126,6 @@ variable "ocp_master" {
   description = "Configuration for Openshift master virtual machine"
   type = object({
     id       = string,
-    base_img = string,
     vcpu     = number,
     memory   = number,
     size     = number
@@ -138,7 +137,6 @@ variable "ocp_worker" {
   description = "Configuration for Openshift worker virtual machine"
   type = object({
     id       = string,
-    base_img = string,
     vcpu     = number,
     memory   = number,
     size     = number

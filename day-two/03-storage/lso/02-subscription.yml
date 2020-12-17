@@ -7,6 +7,6 @@ metadata:
 spec:
   name: local-storage-operator
   channel: "4.5"
-  installPlanApproval: Automatic
+  installPlanApproval: Manual
   source: redhat-operators-disconnected
   sourceNamespace: openshift-marketplace

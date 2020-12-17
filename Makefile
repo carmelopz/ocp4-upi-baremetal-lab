@@ -5,10 +5,10 @@ TF_FILES_PATH     := src
 TF_BACKEND_CONF   := configuration/backend
 TF_VARIABLES      := configuration/tfvars
 LIBVIRT_IMGS_PATH := src/storage/images
-OCP_VERSION       := 4.4.16
+OCP_VERSION       := 4.6.8
 OCP_RELEASE       := $(shell echo $(OCP_VERSION) | head -c 3)
 OCP_INSTALLER     := openshift-install
-RHCOS_VERSION     := 4.4.3
+RHCOS_VERSION     := 4.6.8
 RHCOS_IMAGE_PATH  := $(LIBVIRT_IMGS_PATH)/rhcos-${RHCOS_VERSION}-x86_64-qemu.x86_64.qcow2
 FCOS_VERSION      := 32.20200629.3.0
 FCOS_IMAGE_PATH   := $(LIBVIRT_IMGS_PATH)/fedora-coreos-$(FCOS_VERSION).x86_64.qcow2
@@ -20,9 +20,11 @@ require:
 	@./requirements.sh
 
 download-images:
+	mkdir -p $(LIBVIRT_IMGS_PATH)
+
 ifeq (,$(wildcard $(RHCOS_IMAGE_PATH)))
 	$(info Downloading Red Hat CoreOS image...)
-	curl -s -S -L -f -o $(RHCOS_IMAGE_PATH).gz \
+	curl -L -f -o $(RHCOS_IMAGE_PATH).gz \
 		https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/${OCP_RELEASE}/${RHCOS_VERSION}/rhcos-${RHCOS_VERSION}-x86_64-qemu.x86_64.qcow2.gz
 
 	gunzip -c $(RHCOS_IMAGE_PATH).gz > $(RHCOS_IMAGE_PATH)
@@ -34,7 +36,7 @@ endif
 
 ifeq (,$(wildcard $(FCOS_IMAGE_PATH)))
 	$(info Downloading Fedora CoreOS image...)
-	curl -s -S -L -f -o $(FCOS_IMAGE_PATH).xz \
+	curl -L -f -o $(FCOS_IMAGE_PATH).xz \
 		https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/$(FCOS_VERSION)/x86_64/fedora-coreos-$(FCOS_VERSION)-qemu.x86_64.qcow2.xz
 
 	unxz -c $(FCOS_IMAGE_PATH).xz > $(FCOS_IMAGE_PATH)
@@ -96,7 +98,7 @@ clean-dns:
 	@sudo chmod 755 /etc/NetworkManager/dnsmasq.d
 	@sudo systemctl restart NetworkManager
 
-clean: changes clean-installer clean-dns 
+clean-infra:
 	$(info Destroying infrastructure...)
 	$(TERRAFORM) destroy \
 		-auto-approve \
@@ -110,3 +112,5 @@ clean: changes clean-installer clean-dns
 	$(RM) -r output/openshift-install/$(ENVIRONMENT)
 	$(RM) -r output/mirror/$(ENVIRONMENT)
 	$(RM) -r state/terraform.$(ENVIRONMENT).tfstate
+
+clean: changes clean-installer clean-dns clean-infra

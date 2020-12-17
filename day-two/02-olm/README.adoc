@@ -20,10 +20,35 @@ Mirror the catalog image for `+redhat-operators+` (certified-operators and comun
 ----
 source environment/${ENVIRONMENT}.env
 
+# Red Hat operators
 ./mirror-olm.sh mirror-catalog \
     --ocp-release="${OCP_RELEASE}" \
     --catalog-name="redhat-operators" \
-    --catalog-image="${REDHAT_OPERATORS_CATALOG_IMAGE}" \
+    --catalog-image="${REDHAT_OPERATORS_DISCONNECTED_IMAGE}" \
+    --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json" \
+    --arch="linux/amd64"
+
+# Certified operators
+./mirror-olm.sh mirror-catalog \
+    --ocp-release="${OCP_RELEASE}" \
+    --catalog-name="certified-operators" \
+    --catalog-image="${CERTIFIED_OPERATORS_DISCONNECTED_IMAGE}" \
+    --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json" \
+    --arch="linux/amd64"
+
+# Community operators
+./mirror-olm.sh mirror-catalog \
+    --ocp-release="${OCP_RELEASE}" \
+    --catalog-name="community-operators" \
+    --catalog-image="${COMMUNITY_OPERATORS_DISCONNECTED_IMAGE}" \
+    --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json" \
+    --arch="linux/amd64"
+
+# Red Hat marketplace
+./mirror-olm.sh mirror-catalog \
+    --ocp-release="${OCP_RELEASE}" \
+    --catalog-name="redhat-marketplace" \
+    --catalog-image="${REDHAT_MARKETPLACE_DISCONNECTED_IMAGE}" \
     --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json" \
     --arch="linux/amd64"
 ----
@@ -34,10 +59,25 @@ Download the catalog database.
 ----
 source environment/${ENVIRONMENT}.env
 
+# Red Hat operators
 ./mirror-olm.sh download-db \
     --catalog-name="redhat-operators" \
-    --catalog-image="${REDHAT_OPERATORS_CATALOG_IMAGE}" \
-    --catalog-repository="${REDHAT_OPERATORS_CATALOG_REPO}" \
+    --catalog-image="${REDHAT_OPERATORS_DISCONNECTED_IMAGE}" \
+    --catalog-repository="${REDHAT_OPERATORS_DISCONNECTED_REPO}" \
+    --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json"
+
+# Certified operators
+./mirror-olm.sh download-db \
+    --catalog-name="certified-operators" \
+    --catalog-image="${CERTIFIED_OPERATORS_DISCONNECTED_IMAGE}" \
+    --catalog-repository="${CERTIFIED_OPERATORS_DISCONNECTED_REPO}" \
+    --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json"
+
+# Community operators
+./mirror-olm.sh download-db \
+    --catalog-name="community-operators" \
+    --catalog-image="${COMMUNITY_OPERATORS_DISCONNECTED_IMAGE}" \
+    --catalog-repository="${COMMUNITY_OPERATORS_DISCONNECTED_REPO}" \
     --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json"
 ----
 
@@ -45,7 +85,10 @@ Create the `+CatalogSource+` object.
 
 [source,bash]
 ----
-oc apply -f catalog-source/localhost/redhat-operators-disconnected.yml
+oc apply -f catalog-source/${ENVIRONMENT}/redhat-operators-disconnected.yml
+oc apply -f catalog-source/${ENVIRONMENT}/certified-operators-disconnected.yml
+oc apply -f catalog-source/${ENVIRONMENT}/community-operators-disconnected.yml
+oc apply -f catalog-source/${ENVIRONMENT}/redhat-marketplace-disconnected.yml
 ----
 
 Create the `+ImageContentSourcePolicy+` object.
@@ -53,17 +96,19 @@ Create the `+ImageContentSourcePolicy+` object.
 [source,bash]
 ----
 oc apply -f catalogs/redhat-operators/imageContentSourcePolicy.yaml
+oc apply -f catalogs/certified-operators/imageContentSourcePolicy.yaml
+oc apply -f catalogs/community-operators/imageContentSourcePolicy.yaml
 ----
 
 == Mirror operator images
 
-Mirror images for the `+ocs-operator+` in the `+redhat-operators+` catalog.
+For example, mirror images for the `+ocs-operator+` in the `+redhat-operators+` catalog.
 
 [source,bash]
 ----
 ./mirror-olm.sh mirror-operator \
-    --catalog-path="catalogs/redhat-operators" \
-    --operator-name="ocs-operator.v4.5.1" \
+    --catalog-path="catalogs/community-operators" \
+    --operator-name="argocd-operator.v0.0.9" \
     --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json"
 ----
 

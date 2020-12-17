@@ -36,49 +36,6 @@ resource "libvirt_network" "openshift" {
       ip       = local.load_balancer.ip
     }
 
-    hosts {
-      hostname = format("etcd-0.%s", var.dns.domain)
-      ip       = local.ocp_master.0.ip
-    }
-
-    hosts {
-      hostname = format("etcd-1.%s", var.dns.domain)
-      ip       = local.ocp_master.1.ip
-    }
-
-    hosts {
-      hostname = format("etcd-2.%s", var.dns.domain)
-      ip       = local.ocp_master.2.ip
-    }
-
-    # SRV records
-    srvs {
-      service  = "etcd-server-ssl"
-      protocol = "tcp"
-      target   = format("etcd-0.%s", var.dns.domain)
-      port     = 2380
-      priority = 0
-      weight   = 100
-    }
-
-    srvs {
-      service  = "etcd-server-ssl"
-      protocol = "tcp"
-      target   = format("etcd-1.%s", var.dns.domain)
-      port     = 2380
-      priority = 0
-      weight   = 100
-    }
-
-    srvs {
-      service  = "etcd-server-ssl"
-      protocol = "tcp"
-      target   = format("etcd-2.%s", var.dns.domain)
-      port     = 2380
-      priority = 0
-      weight   = 100
-    }
-
     # Ingress controller routes
     dynamic "hosts" {
       for_each = [

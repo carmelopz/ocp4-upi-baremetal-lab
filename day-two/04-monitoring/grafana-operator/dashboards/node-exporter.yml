@@ -1,0 +1,12 @@
+apiVersion: integreatly.org/v1alpha1
+kind: GrafanaDashboard
+metadata:
+  name: node-exporter
+  labels:
+    app: grafana
+spec:
+  name: node-exporter.json
+  datasources:
+    - inputName: DS_PROMETHEUS
+      datasourceName: Prometheus-OCP4
+  url: https://raw.githubusercontent.com/rfrail3/grafana-dashboards/master/prometheus/node-exporter-full.json

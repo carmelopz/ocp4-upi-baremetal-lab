@@ -1,0 +1,44 @@
+---
+apiVersion: operator.openshift.io/v1
+kind: IngressController
+metadata:
+  name: stress-nodeport
+  namespace: openshift-ingress-operator
+spec:
+  replicas: 1
+  domain: stress-nodeport.bmlab.int
+  routeSelector:
+    matchLabels:
+      routerName: stress-nodeport
+  nodePlacement:
+    nodeSelector:
+      matchLabels:
+        node-role.kubernetes.io/perf: ""
+  endpointPublishingStrategy:
+    type: Private
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: router-stress-nodeport
+  labels:
+    name: router-stress
+  namespace: openshift-ingress
+spec:
+  type: NodePort
+  sessionAffinity: None
+  externalTrafficPolicy: Local
+  ports:
+    - name: http
+      nodePort: 30925
+      port: 80
+      protocol: TCP
+      targetPort: http
+    - name: https
+      nodePort: 31625
+      port: 443
+      protocol: TCP
+      targetPort: https
+  selector:
+    ingresscontroller.operator.openshift.io/deployment-ingresscontroller: stress-nodeport

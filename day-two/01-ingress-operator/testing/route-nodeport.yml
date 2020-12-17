@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: Route
+metadata:
+  name: app-nodeport
+  namespace: example-app-testing
+  labels:
+    app: example
+    routerName: stress-nodeport
+spec:
+  to:
+    kind: Service
+    name: app-example
+
+---
+apiVersion: v1
+kind: Route
+metadata:
+  name: app-nodeport-secure
+  namespace: example-app-testing
+  labels:
+    app: example
+    routerName: stress-nodeport
+spec:
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: app-example

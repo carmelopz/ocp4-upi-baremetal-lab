@@ -10,106 +10,35 @@ locals {
   ]
 }
 
-resource "libvirt_ignition" "ocp_worker" {
-
-  count = var.ocp_cluster.num_workers
-
-  name    = format("%s.ign", element(local.ocp_worker, count.index).hostname)
-  pool    = libvirt_pool.openshift.name
-  content = data.local_file.ocp_ignition_worker.content
-
-  lifecycle {
-    ignore_changes = [
-      content
-    ]
-  }
-}
-
-resource "libvirt_volume" "ocp_worker_image" {
-  name   = format("%s-baseimg.qcow2", element(local.ocp_worker, 0).hostname)
-  pool   = libvirt_pool.openshift.name
-  source = var.ocp_worker.base_img
-  format = "qcow2"
-}
-
-resource "libvirt_volume" "ocp_worker" {
-
-  count = var.ocp_cluster.num_workers
-
-  name           = format("%s-volume.qcow2", element(local.ocp_worker, count.index).hostname)
-  pool           = libvirt_pool.openshift.name
-  base_volume_id = libvirt_volume.ocp_worker_image.id
-  size           = var.ocp_worker.size * pow(10, 9) # Bytes
-  format         = "qcow2"
-}
-
 resource "libvirt_volume" "ocp_worker_lso" {
 
   count = var.ocp_cluster.num_workers
 
   name           = format("%s-lso-volume.qcow2", element(local.ocp_worker, count.index).hostname)
   pool           = libvirt_pool.openshift.name
-  size           = 100 * pow(10, 9) # Bytes
+  size           = 100 * 1073741824 # Bytes
   format         = "qcow2"
 }
 
-resource "libvirt_domain" "ocp_worker" {
+module "ocp_worker" {
 
-  count = var.ocp_cluster.num_workers
+  source = "./modules/ocp_node"
+  count  = var.ocp_cluster.num_workers
 
-  name    = format("ocp-%s", element(local.ocp_worker, count.index).hostname)
-  memory  = var.ocp_worker.memory
-  vcpu    = var.ocp_worker.vcpu
-  running = false
-
-  coreos_ignition = element(libvirt_ignition.ocp_worker.*.id, count.index)
-
-  cpu = {
-    mode = "host-passthrough"
-  }
-
-  disk {
-    volume_id = element(libvirt_volume.ocp_worker.*.id, count.index)
-    scsi      = false
-  }
-
-  disk {
-    volume_id = element(libvirt_volume.ocp_worker_lso.*.id, count.index)
-    scsi      = true
-  }
-
-  network_interface {
-    network_name   = libvirt_network.openshift.name
-    hostname       = element(local.ocp_worker, count.index).fqdn
-    addresses      = [ element(local.ocp_worker, count.index).ip ]
-    mac            = element(local.ocp_worker, count.index).mac
-    wait_for_lease = true
-  }
-
-  console {
-    type           = "pty"
-    target_type    = "serial"
-    target_port    = "0"
-    source_host    = "127.0.0.1"
-    source_service = "0"
-  }
-
-  graphics {
-    type           = "spice"
-    listen_type    = "address"
-    listen_address = "127.0.0.1"
-    autoport       = true
-  }
-
-  lifecycle {
-    ignore_changes = [
-      running,
-      network_interface.0.addresses
-    ]
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = format("ssh-keygen -R %s || true", self.network_interface.0.hostname)
+  id           = format("ocp-%s", local.ocp_worker[count.index].hostname)
+  fqdn         = local.ocp_worker[count.index].fqdn
+  ignition     = data.local_file.ocp_ignition_worker.content
+  cpu          = var.ocp_worker.vcpu
+  memory       = var.ocp_worker.memory
+  libvirt_pool = libvirt_pool.openshift.name
+  os_image     = var.ocp_bootstrap.base_img
+  disk_size    = var.ocp_worker.size # Gigabytes
+  extra_disks  = [
+    libvirt_volume.ocp_worker_lso[count.index].id
+  ]
+  network      = {
+    name = libvirt_network.openshift.name
+    ip   = local.ocp_worker[count.index].ip
+    mac  = local.ocp_worker[count.index].mac
   }
 }

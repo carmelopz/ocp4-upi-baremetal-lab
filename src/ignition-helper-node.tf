@@ -31,6 +31,7 @@ data "template_file" "helper_node_ignition" {
     ocp_infra_1_fqdn   = local.ocp_worker.1.fqdn
     ocp_infra_2_fqdn   = local.ocp_worker.2.fqdn
   }
+  
 }
 
 data "ct_config" "helper_node_ignition" {

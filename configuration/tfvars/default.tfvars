@@ -25,15 +25,14 @@ nfs = {
 
 ocp_bootstrap = {
   id       = "bootstrap"
-  base_img = "src/storage/images/rhcos-4.4.3-x86_64-qemu.x86_64.qcow2"
-  vcpu     = 2
-  memory   = 4096
+  base_img = "src/storage/images/rhcos-4.6.8-x86_64-qemu.x86_64.qcow2"
+  vcpu     = 4
+  memory   = 8192
   size     = 60 # Gigabytes
 }
 
 ocp_master = {
   id       = "master"
-  base_img = "src/storage/images/rhcos-4.4.3-x86_64-qemu.x86_64.qcow2"
   vcpu     = 4
   memory   = 16384
   size     = 120 # Gigabytes
@@ -41,7 +40,6 @@ ocp_master = {
 
 ocp_worker = {
   id       = "worker"
-  base_img = "src/storage/images/rhcos-4.4.3-x86_64-qemu.x86_64.qcow2"
   vcpu     = 4
   memory   = 8192
   size     = 200 # Gigabytes

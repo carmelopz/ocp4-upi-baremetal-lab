@@ -4,7 +4,7 @@ metadata:
   name: default
   namespace: openshift-ingress-operator
 spec:
-  replicas: 3
+  replicas: 2
   nodePlacement:
     nodeSelector:
       matchLabels:

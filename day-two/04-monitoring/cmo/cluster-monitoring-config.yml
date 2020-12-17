@@ -9,9 +9,17 @@ data:
       nodeSelector:
         node-role.kubernetes.io/infra: ""
     prometheusK8s:
-      retention: 24h
+      retention: 7d
       nodeSelector:
         node-role.kubernetes.io/infra: ""
+      volumeClaimTemplate:
+        metadata:
+          name: data
+        spec:
+          storageClassName: prometheus-scsi-fs
+          resources:
+            requests:
+              storage: 100Gi
     prometheusOperator:
       nodeSelector:
         node-role.kubernetes.io/infra: ""
