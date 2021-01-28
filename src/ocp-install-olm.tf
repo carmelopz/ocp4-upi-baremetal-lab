@@ -8,29 +8,29 @@ locals {
       id          = "redhat-operators-disconnected"
       description = "Red Hat Operators (Disconnected)"
       publisher   = "Disconnected"
-      repository  = format("%s/olm/redhat-operators", local.registry.address)
-      image       = format("%s/olm/redhat-operators:v%s", local.registry.address, local.olm.version)
+      repository  = format("%s/olm/redhat-operator-index", local.registry.address)
+      image       = format("%s/olm/redhat-operator-index:v%s", local.registry.address, local.olm.version)
     },
     {
       id          = "certified-operators-disconnected"
       description = "Certified Operators (Disconnected)"
       publisher   = "Disconnected"
-      repository  = format("%s/olm/certified-operators", local.registry.address)
-      image       = format("%s/olm/certified-operators:v%s", local.registry.address, local.olm.version)
+      repository  = format("%s/olm/certified-operator-index", local.registry.address)
+      image       = format("%s/olm/certified-operator-index:v%s", local.registry.address, local.olm.version)
     },
     {
       id          = "community-operators-disconnected"
       description = "Community Operators (Disconnected)"
       publisher   = "Disconnected"
-      repository  = format("%s/olm/community-operators", local.registry.address)
-      image       = format("%s/olm/community-operators:v%s", local.registry.address, local.olm.version)
+      repository  = format("%s/olm/community-operator-index", local.registry.address)
+      image       = format("%s/olm/community-operator-index:v%s", local.registry.address, local.olm.version)
     },
     {
       id          = "redhat-marketplace-disconnected"
       description = "Red Hat Marketplace (Disconnected)"
       publisher   = "Disconnected"
-      repository  = format("%s/olm/redhat-marketplace", local.registry.address)
-      image       = format("%s/olm/redhat-marketplace:v%s", local.registry.address, local.olm.version)
+      repository  = format("%s/olm/redhat-marketplace-index", local.registry.address)
+      image       = format("%s/olm/redhat-marketplace-index:v%s", local.registry.address, local.olm.version)
     }
   ]
 }

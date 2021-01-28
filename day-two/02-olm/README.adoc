@@ -23,7 +23,7 @@ source environment/${ENVIRONMENT}.env
 # Red Hat operators
 ./mirror-olm.sh mirror-catalog \
     --ocp-release="${OCP_RELEASE}" \
-    --catalog-name="redhat-operators" \
+    --catalog-name="redhat-operator" \
     --catalog-image="${REDHAT_OPERATORS_DISCONNECTED_IMAGE}" \
     --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json" \
     --arch="linux/amd64"
@@ -31,7 +31,7 @@ source environment/${ENVIRONMENT}.env
 # Certified operators
 ./mirror-olm.sh mirror-catalog \
     --ocp-release="${OCP_RELEASE}" \
-    --catalog-name="certified-operators" \
+    --catalog-name="certified-operator" \
     --catalog-image="${CERTIFIED_OPERATORS_DISCONNECTED_IMAGE}" \
     --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json" \
     --arch="linux/amd64"
@@ -39,7 +39,7 @@ source environment/${ENVIRONMENT}.env
 # Community operators
 ./mirror-olm.sh mirror-catalog \
     --ocp-release="${OCP_RELEASE}" \
-    --catalog-name="community-operators" \
+    --catalog-name="community-operator" \
     --catalog-image="${COMMUNITY_OPERATORS_DISCONNECTED_IMAGE}" \
     --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json" \
     --arch="linux/amd64"
@@ -107,9 +107,32 @@ For example, mirror images for the `+ocs-operator+` in the `+redhat-operators+` 
 [source,bash]
 ----
 ./mirror-olm.sh mirror-operator \
-    --catalog-path="catalogs/community-operators" \
-    --operator-name="argocd-operator.v0.0.9" \
+    --catalog-path="catalogs/redhat-operators" \
+    --operator-name="jaeger-operator.v1.20.2" \
     --registry-auth="../../output/openshift-install/${ENVIRONMENT}/pull-secret.json"
+----
+
+Find the name of the PackageManifest for the operator you want to install.
+
+[source,bash]
+----
+oc get packagemanifest
+----
+
+Get available CSV for the operator PackageManifest.
+
+[source,bash]
+----
+export operator_pkg="example-operator"
+oc get packagemanifest ${operator_pkg} -o jsonpath='{.status.channels[*].currentCSV}{"\n"}' | tr " " "\n"
+----
+
+Get the list of images to mirror for this operator.
+
+[source,bash]
+----
+export operator_csv="example-operator"
+oc get packagemanifest ${operator_pkg} -o jsonpath='{.status.channels[?(@.currentCSV=="'${operator_csv}'")].currentCSVDesc.relatedImages[*]}{"\n"}' | tr " " "\n"
 ----
 
 == Troubleshooting

@@ -11,18 +11,16 @@ function mirror_catalog_image {
 
     # Display catalogs image content
     oc image info \
-    registry.redhat.io/openshift4/ose-operator-registry:v${ocp_release} \
-        --registry-config=${registry_auth} \
-        --filter-by-os=${arch}
+        registry.redhat.io/redhat/${catalog_name}-index:v${ocp_release} \
+            --registry-config=${registry_auth} \
+            --filter-by-os=${arch}
 
-    # Mirror catalog image
-    oc adm catalog build \
-        --from=registry.redhat.io/openshift4/ose-operator-registry:v${ocp_release} \
-        --appregistry-org=${catalog_name} \
-        --to=${catalog_image} \
-        --registry-config=${registry_auth} \
-        --filter-by-os=${arch} \
-        --insecure=true
+    # Mirror index image
+    oc image mirror \
+        registry.redhat.io/redhat/${catalog_name}-index:v${ocp_release} ${catalog_image} \
+            --registry-config=${registry_auth} \
+            --filter-by-os=${arch} \
+            --insecure=true
 }
 
 # Download the database catalog content for a database
@@ -32,23 +30,23 @@ function download_catalog_db {
     catalog_image=${2}
     catalog_repository=${3}
     catalog_path="catalogs/${catalog_name}"
-    catalog_database="${catalog_path}/database"
+    catalog_image_fs="${catalog_path}/image"
     registry_auth=${4}
 
     # Download catalog database
-    mkdir -p ${catalog_database}
+    mkdir -p ${catalog_image_fs}
 
     oc adm catalog mirror \
         ${catalog_image} ${catalog_repository} \
             --manifests-only \
             --to-manifests=${catalog_path} \
-            --path="/:${catalog_database}" \
+            --path="/:${catalog_image_fs}" \
             --registry-config=${registry_auth} \
             --filter-by-os=".*" \
             --insecure=true
 
     # # Get the list of operators in the catalog
-    sqlite3 ${catalog_database}/bundles.db \
+    sqlite3 ${catalog_image_fs}/database/index.db \
         "select operatorbundle_name from related_image group by operatorbundle_name;" \
             > ${catalog_path}/index.txt
 }
@@ -67,10 +65,11 @@ function mirror_operator_images {
 
     # Get updated list of operator images
 
-    operator_images=(`sqlite3 ${catalog_path}/database/bundles.db \
+    operator_images=(`sqlite3 ${catalog_path}/image/database/index.db \
         "select image from related_image where operatorbundle_name like '${operator_name}%';"`)
 
     for image in "${operator_images[@]}"; do
+        echo ${image}
         grep ${image} ${catalog_path}/mapping.txt \
             >> ${operator_path}/images.txt
     done
